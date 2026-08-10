@@ -1,15 +1,10 @@
-
 import {competitions} from "../data/competitions.js";
 import {teams} from "../data/teams.js";
 import {matches} from "../data/matches.js";
 export function dashboard(){
- const active=competitions.filter(c=>c.status==="active").length;
- return `<div class="hero">
-  <div class="card hero-card"><span class="badge live">● Temporada 2026/27</span><h2>Todo el fútbol, organizado en un solo lugar.</h2><p class="muted">Consulta competiciones, partidos, equipos, clasificaciones y estadísticas con una interfaz pensada primero para móvil.</p>
-   <div class="metric-grid"><div class="metric"><small>Competiciones</small><b>${active}</b></div><div class="metric"><small>Clubes cargados</small><b>${teams.length}</b></div><div class="metric"><small>Partidos demo</small><b>${matches.length}</b></div><div class="metric"><small>Modo</small><b>Offline</b></div></div>
-  </div>
-  <div class="card"><h3>Actualización de datos</h3><p class="muted">La arquitectura separa datos, interfaz y servicios. Así podemos actualizar una competición sin tocar el resto de la aplicación.</p><span class="badge">Datos locales</span></div>
- </div>
- <div class="section-title"><h2>Competiciones destacadas</h2><span class="muted">2026/27</span></div>
- <div class="grid">${competitions.slice(0,8).map(c=>`<article class="card competition-card"><div class="comp-icon">⚽</div><h3>${c.name}</h3><p class="muted">${c.country} · ${c.season}</p><span class="badge">${c.status==="historical"?"Histórica":"Activa"}</span></article>`).join("")}</div>`;
+ const active=competitions.filter(c=>c.status==='active').length;
+ const verified=teams.filter(t=>t.sourceStatus==='club-list-verified').length;
+ return `<div class="hero"><div class="card hero-card"><span class="badge live">● Temporada 2026/27</span><h2>Todo el fútbol, organizado en un solo lugar.</h2><p class="muted">Consulta fixtures, clasificaciones, equipos y análisis estadístico con una interfaz pensada primero para móvil.</p><div class="metric-grid"><div class="metric"><small>Competiciones activas</small><b>${active}</b></div><div class="metric"><small>Clubes registrados</small><b>${verified}</b></div><div class="metric"><small>Fixtures cargados</small><b>${matches.length}</b></div><div class="metric"><small>Datos</small><b>Local</b></div></div></div><button class="card quick-action" data-view="matches"><h3>📅 Próximos partidos</h3><p class="muted">Abre el calendario y filtra por competición.</p><span class="arrow">→</span></button></div>
+ <div class="section-title"><div><h2>Accesos principales</h2><p class="muted">Cada acceso lleva a una función real.</p></div></div><div class="grid quick-grid"><button class="card quick-action" data-view="competitions"><h3>🏆 Competiciones</h3><p class="muted">Explora ligas y torneos.</p><span class="arrow">→</span></button><button class="card quick-action" data-view="standings"><h3>📊 Clasificaciones</h3><p class="muted">Consulta tablas por competición.</p><span class="arrow">→</span></button><button class="card quick-action" data-view="teams"><h3>👥 Equipos</h3><p class="muted">Busca clubes y sus datos disponibles.</p><span class="arrow">→</span></button></div>
+ <div class="section-title"><h2>Competiciones destacadas</h2><span class="muted">2026/27</span></div><div class="grid">${competitions.slice(0,8).map(c=>`<button class="card competition-card interactive-card" data-open-competition="${c.id}"><div class="card-top"><span class="badge ${c.status==='active'?'live':''}">${c.status==='historical'?'Histórica':'Activa'}</span><span class="arrow">→</span></div><h3>${c.name}</h3><p class="muted">${c.country} · ${c.season}</p><p class="muted">Ver fixtures y clasificación</p></button>`).join('')}</div>`;
 }

@@ -23,5 +23,35 @@
     "name": "UEFA Champions League",
     "url": "https://www.uefa.com/uefachampionsleague/clubs/",
     "usedFor": "2026/27 league-phase clubs"
+  },
+  {
+    "name": "Premier League fixtures 2026/27",
+    "url": "https://www.premierleague.com/en/news/4675097/all-380-fixtures-for-202627-premier-league-season",
+    "usedFor": "Fixtures 2026/27; first matchday loaded"
+  },
+  {
+    "name": "LALIGA fixtures 2026/27",
+    "url": "https://www.laliga.com/calendar-2026-2027/laliga-easports",
+    "usedFor": "Calendar and first matchday loaded"
+  },
+  {
+    "name": "Bundesliga fixtures 2026/27",
+    "url": "https://products.bundesliga.com/fixtures",
+    "usedFor": "First matchday loaded"
+  },
+  {
+    "name": "EFL Championship",
+    "url": "https://www.efl.com/competitions/efl-championship/",
+    "usedFor": "Competition status, stats structure and opening weekend"
+  },
+  {
+    "name": "Ligue 1 fixtures 2026/27",
+    "url": "https://ligue1.com/en/articles/l1_article_5435-programmation-tv-des-2-premieres-journees-de-ligue-1-mc-donald-s-2627",
+    "usedFor": "First two matchdays verified"
+  },
+  {
+    "name": "Serie A fixtures 2026/27",
+    "url": "https://www.legaseriea.it/serie-a/news/ecco-la-prima-giornata-della-serie-a-enilive-2026-27",
+    "usedFor": "First matchday loaded"
   }
 ]

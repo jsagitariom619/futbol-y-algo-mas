@@ -44,3 +44,13 @@ Se verificó:
 
 ## Próxima fase
 Conectar un proveedor de datos autorizado/estable para sincronizar resultados y estadísticas reales por competición, manteniendo la separación entre datos, interfaz y lógica.
+
+
+## Segunda intervención — UX y datos
+- Las tarjetas de competición son accesos funcionales a Fixtures.
+- Fixtures ahora permite filtrar por cualquier competición registrada.
+- Clasificaciones carga dinámicamente todas las competiciones.
+- Cada fixture abre una ficha de análisis estadístico.
+- Se cargaron calendarios publicados para Premier League, LALIGA, Bundesliga, Ligue 1 y Serie A; Championship queda preparado con su apertura oficial.
+- No se inventan estadísticas: cuando faltan datos se muestra “—” o “Datos insuficientes”.
+- Se añadieron indicadores de goles, córners y tarjetas para alimentar posteriormente el motor estadístico con datos históricos verificables.
