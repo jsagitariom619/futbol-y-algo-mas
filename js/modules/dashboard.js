@@ -1,10 +1,46 @@
+
 import {competitions} from "../data/competitions.js";
 import {teams} from "../data/teams.js";
 import {matches} from "../data/matches.js";
+import {esc} from "../ui/ui.js";
+
 export function dashboard(){
- const active=competitions.filter(c=>c.status==='active').length;
- const verified=teams.filter(t=>t.sourceStatus==='club-list-verified').length;
- return `<div class="hero"><div class="card hero-card"><span class="badge live">● Temporada 2026/27</span><h2>Todo el fútbol, organizado en un solo lugar.</h2><p class="muted">Consulta fixtures, clasificaciones, equipos y análisis estadístico con una interfaz pensada primero para móvil.</p><div class="metric-grid"><div class="metric"><small>Competiciones activas</small><b>${active}</b></div><div class="metric"><small>Clubes registrados</small><b>${verified}</b></div><div class="metric"><small>Fixtures cargados</small><b>${matches.length}</b></div><div class="metric"><small>Datos</small><b>Local</b></div></div></div><button class="card quick-action" data-view="matches"><h3>📅 Próximos partidos</h3><p class="muted">Abre el calendario y filtra por competición.</p><span class="arrow">→</span></button></div>
- <div class="section-title"><div><h2>Accesos principales</h2><p class="muted">Cada acceso lleva a una función real.</p></div></div><div class="grid quick-grid"><button class="card quick-action" data-view="competitions"><h3>🏆 Competiciones</h3><p class="muted">Explora ligas y torneos.</p><span class="arrow">→</span></button><button class="card quick-action" data-view="standings"><h3>📊 Clasificaciones</h3><p class="muted">Consulta tablas por competición.</p><span class="arrow">→</span></button><button class="card quick-action" data-view="teams"><h3>👥 Equipos</h3><p class="muted">Busca clubes y sus datos disponibles.</p><span class="arrow">→</span></button></div>
- <div class="section-title"><h2>Competiciones destacadas</h2><span class="muted">2026/27</span></div><div class="grid">${competitions.slice(0,8).map(c=>`<button class="card competition-card interactive-card" data-open-competition="${c.id}"><div class="card-top"><span class="badge ${c.status==='active'?'live':''}">${c.status==='historical'?'Histórica':'Activa'}</span><span class="arrow">→</span></div><h3>${c.name}</h3><p class="muted">${c.country} · ${c.season}</p><p class="muted">Ver fixtures y clasificación</p></button>`).join('')}</div>`;
+  const active = competitions.filter(c=>c.status==="active");
+  return `
+    <div class="hero">
+      <div class="card hero-card">
+        <span class="badge live">● Temporada activa</span>
+        <h2>Datos y estadísticas de fútbol, en un solo lugar.</h2>
+        <p class="muted">Consulta fixtures, clasificaciones, equipos y análisis estadístico desde una interfaz rápida y pensada para móvil.</p>
+        <div class="metric-grid">
+          <div class="metric"><small>Competiciones</small><b>${active.length}</b></div>
+          <div class="metric"><small>Clubes</small><b>${teams.length}</b></div>
+          <div class="metric"><small>Fixtures</small><b>${matches.length}</b></div>
+          <div class="metric"><small>PWA</small><b>OK</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Cómo leer los análisis</h3>
+        <p class="muted">Las frecuencias históricas se mostrarán con su muestra y fuente. Por ejemplo, 8 de 10 = 80% histórico; no es una garantía del siguiente encuentro.</p>
+        <span class="badge">Objetivo · verificable · transparente</span>
+      </div>
+    </div>
+
+    <div class="section-title">
+      <h2>Competiciones</h2><span class="muted">Toca una tarjeta para ver fixtures</span>
+    </div>
+
+    <div class="grid">
+      ${active.slice(0,8).map(c=>`
+        <article class="card competition-card comp-open" data-competition="${c.id}">
+          <span class="badge live">Activa</span>
+          <div class="comp-icon">⚽</div>
+          <h3>${esc(c.name)}</h3>
+          <p class="muted">${esc(c.country)} · ${esc(c.season)}</p>
+          <div class="match-action">Ver fixtures →</div>
+        </article>
+      `).join("")}
+    </div>
+  `;
 }

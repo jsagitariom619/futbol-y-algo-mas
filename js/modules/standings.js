@@ -1,8 +1,38 @@
-import {teams} from "../data/teams.js";
+
 import {competitions} from "../data/competitions.js";
+import {teams} from "../data/teams.js";
+import {esc} from "../ui/ui.js";
+
 export function standingsView(selected="premier-league"){
- const valid=competitions.some(c=>c.id===selected)?selected:(competitions.find(c=>c.status==='active')?.id||'premier-league');
- const rows=teams.filter(t=>t.competitionId===valid).map((t,i)=>{const s=t.stats||{};return `<tr><td>${i+1}</td><td><b>${t.name}</b></td><td>${s.played??'—'}</td><td>${s.wins??'—'}</td><td>${s.draws??'—'}</td><td>${s.losses??'—'}</td><td>${s.goalsFor??'—'}</td><td>${s.goalsAgainst??'—'}</td><td>${typeof s.goalsFor==='number'&&typeof s.goalsAgainst==='number'?s.goalsFor-s.goalsAgainst:'—'}</td><td>${typeof s.wins==='number'&&typeof s.draws==='number'?s.wins*3+s.draws:'—'}</td></tr>`}).join('');
- return `<div class="section-title"><div><h2>Clasificaciones</h2><p class="muted">Selecciona cualquier competición disponible.</p></div></div><div class="card"><div class="filter-bar"><select id="standingsCompetition">${competitions.map(c=>`<option value="${c.id}" ${valid===c.id?'selected':''}>${c.name} · ${c.season}</option>`).join('')}</select></div><div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th></tr></thead><tbody>${rows||'<tr><td colspan="10">No hay clubes cargados para esta competición.</td></tr>'}</tbody></table></div><p class="muted table-note">Los valores “—” significan que la estadística todavía no está sincronizada; no se reemplazan por ceros.</p></div>`;
+  const active = competitions.filter(c=>c.status==="active");
+  const rows = teams.filter(t=>t.competitionId===selected).map((t,i)=>`
+    <tr>
+      <td>${i+1}</td><td><b>${esc(t.name)}</b></td>
+      <td>${t.stats.played||"—"}</td><td>${t.stats.wins||"—"}</td>
+      <td>${t.stats.draws||"—"}</td><td>${t.stats.losses||"—"}</td>
+      <td>${t.stats.goalsFor||"—"}</td><td>${t.stats.goalsAgainst||"—"}</td>
+    </tr>`).join("");
+
+  return `
+    <div class="section-title">
+      <div><h2>Clasificaciones</h2><span class="muted">Todas las competiciones disponibles</span></div>
+    </div>
+
+    <div class="card">
+      <div class="search-row">
+        <select id="standingCompetition">
+          ${active.map(c=>`<option value="${c.id}" ${c.id===selected?"selected":""}>${esc(c.name)} · ${c.season}</option>`).join("")}
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th></tr></thead>
+          <tbody>
+            ${rows || `<tr><td colspan="8"><div class="empty">Aún no hay estadísticas sincronizadas para esta competición.</div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
 }
-export function bindStandings(render){const s=document.querySelector('#standingsCompetition');if(s)s.onchange=()=>render('standings',s.value)}

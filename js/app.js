@@ -1,22 +1,75 @@
+
 import {dashboard} from "./modules/dashboard.js";
 import {competitionsView} from "./modules/competitions.js";
-import {matchesView,bindMatchFilters} from "./modules/matches.js";
+import {matchesView} from "./modules/matches.js";
 import {teamsView,bindTeamSearch} from "./modules/teams.js";
-import {standingsView,bindStandings} from "./modules/standings.js";
-import {matchDetail} from "./modules/match-detail.js";
+import {standingsView} from "./modules/standings.js";
+import {matchAnalysis} from "./modules/match-analysis.js";
 import {showToast} from "./ui/ui.js";
-const views={dashboard:["Resumen",dashboard],competitions:["Competiciones",competitionsView],matches:["Fixtures",matchesView],teams:["Equipos",teamsView],standings:["Clasificaciones",standingsView],match:["Análisis del partido",matchDetail]};
-const app=document.querySelector('#app'),title=document.querySelector('#pageTitle'),sidebar=document.querySelector('.sidebar');
-function render(id='dashboard',arg=''){const v=views[id]||views.dashboard;title.textContent=v[0];app.innerHTML=id==='match'?v[1](arg):v[1](arg);document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===id));sidebar.classList.remove('open');bind();}
-function bind(){
- document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>render(b.dataset.view));
- document.querySelectorAll('[data-open-competition]').forEach(b=>b.onclick=()=>render('matches',b.dataset.openCompetition));
- document.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>render('match',b.dataset.openMatch));
- document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>render(b.dataset.back));
- bindTeamSearch();bindStandings(render);bindMatchFilters(render);
+
+const views = {
+  dashboard:["Resumen",dashboard],
+  competitions:["Competiciones",competitionsView],
+  matches:["Fixtures",matchesView],
+  teams:["Equipos",teamsView],
+  standings:["Clasificaciones",standingsView],
+  analysis:["Análisis del partido",matchAnalysis]
+};
+
+const app=document.querySelector("#app");
+const title=document.querySelector("#pageTitle");
+const sidebar=document.querySelector(".sidebar");
+
+function parseHash(){
+  const raw=location.hash.slice(1)||"dashboard";
+  const [view,...rest]=raw.split("/");
+  return {view,param:rest.join("/")};
 }
-document.querySelector('#nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)render(b.dataset.view)});
-document.querySelector('#menuBtn').onclick=()=>sidebar.classList.toggle('open');
-document.querySelector('#refreshBtn').onclick=()=>showToast('La interfaz está lista para sincronizar datos oficiales.');
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-render(location.hash.slice(1)||'dashboard');
+
+function render(view="dashboard",param=""){
+  const v=views[view]||views.dashboard;
+  title.textContent=v[0];
+  app.innerHTML =
+    view==="matches" ? v[1](param||"all") :
+    view==="standings" ? v[1](param||"premier-league") :
+    view==="analysis" ? v[1](param) :
+    v[1]();
+
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+  if(view==="teams") bindTeamSearch();
+  sidebar.classList.remove("open");
+}
+
+document.querySelector("#nav").addEventListener("click",e=>{
+  const b=e.target.closest("[data-view]");
+  if(b) location.hash=b.dataset.view;
+});
+
+document.querySelector("#menuBtn").onclick=()=>sidebar.classList.toggle("open");
+document.querySelector("#refreshBtn").onclick=()=>showToast("Actualización preparada; no se muestran datos inventados.");
+
+app.addEventListener("click",e=>{
+  const comp=e.target.closest(".comp-open");
+  if(comp){ location.hash="matches/"+comp.dataset.competition; return; }
+
+  const match=e.target.closest(".match-open");
+  if(match){ location.hash="analysis/"+match.dataset.matchId; return; }
+
+  const back=e.target.closest(".back-to-matches");
+  if(back){ location.hash="matches"; return; }
+});
+
+app.addEventListener("change",e=>{
+  if(e.target.id==="matchCompetition") location.hash="matches/"+e.target.value;
+  if(e.target.id==="standingCompetition") location.hash="standings/"+e.target.value;
+});
+
+window.addEventListener("hashchange",()=>{
+  const x=parseHash();
+  render(x.view,x.param);
+});
+
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+const first=parseHash();
+render(first.view,first.param);
