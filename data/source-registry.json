@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Premier League",
+    "url": "https://www.premierleague.com/en/tables/premier-league/2026-27",
+    "usedFor": "2026/27 club/table structure"
+  },
+  {
+    "name": "LALIGA",
+    "url": "https://www.laliga.com/laliga-easports/clubes",
+    "usedFor": "2026/27 clubs"
+  },
+  {
+    "name": "LALIGA HYPERMOTION",
+    "url": "https://www.laliga.com/es-CA/laliga-hypermotion/clubes",
+    "usedFor": "2026/27 clubs"
+  },
+  {
+    "name": "Bundesliga",
+    "url": "https://www.bundesliga.com/en/bundesliga/clubs",
+    "usedFor": "2026/27 clubs"
+  },
+  {
+    "name": "UEFA Champions League",
+    "url": "https://www.uefa.com/uefachampionsleague/clubs/",
+    "usedFor": "2026/27 league-phase clubs"
+  }
+]
