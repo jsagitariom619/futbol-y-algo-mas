@@ -4,7 +4,7 @@ import {competitionsView} from "./modules/competitions.js";
 import {matchesView} from "./modules/matches.js";
 import {teamsView,bindTeamSearch} from "./modules/teams.js";
 import {standingsView} from "./modules/standings.js";
-import {matchAnalysis} from "./modules/match-analysis.js";
+import {matchDetail} from "./modules/match-detail.js";
 import {showToast} from "./ui/ui.js";
 
 const views = {
@@ -13,7 +13,7 @@ const views = {
   matches:["Fixtures",matchesView],
   teams:["Equipos",teamsView],
   standings:["Clasificaciones",standingsView],
-  analysis:["Análisis del partido",matchAnalysis]
+  analysis:["Análisis del partido",matchDetail]
 };
 
 const app=document.querySelector("#app");
@@ -26,14 +26,14 @@ function parseHash(){
   return {view,param:rest.join("/")};
 }
 
-function render(view="dashboard",param=""){
+async function render(view="dashboard",param=""){
   const v=views[view]||views.dashboard;
   title.textContent=v[0];
-  app.innerHTML =
-    view==="matches" ? v[1](param||"all") :
+  const rendered = view==="matches" ? v[1](param||"all") :
     view==="standings" ? v[1](param||"premier-league") :
     view==="analysis" ? v[1](param) :
     v[1]();
+  app.innerHTML = await Promise.resolve(rendered);
 
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
   if(view==="teams") bindTeamSearch();
@@ -55,7 +55,7 @@ app.addEventListener("click",e=>{
   const match=e.target.closest(".match-open");
   if(match){ location.hash="analysis/"+match.dataset.matchId; return; }
 
-  const back=e.target.closest(".back-to-matches");
+  const back=e.target.closest(".back-to-matches,.back-link");
   if(back){ location.hash="matches"; return; }
 });
 

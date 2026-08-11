@@ -53,5 +53,10 @@
     "name": "Serie A fixtures 2026/27",
     "url": "https://www.legaseriea.it/serie-a/news/ecco-la-prima-giornata-della-serie-a-enilive-2026-27",
     "usedFor": "First matchday loaded"
+  },
+  {
+    "name": "API-Football — estadísticas",
+    "url": "https://www.api-football.com/documentation",
+    "usedFor": "Fixtures, standings, team statistics and match statistics such as shots, corners, offsides and cards; coverage checked by competition/season"
   }
 ]

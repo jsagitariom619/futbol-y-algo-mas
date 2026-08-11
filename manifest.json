@@ -1,11 +1,11 @@
 {
-  "name": "Fútbol Hub - Stats & Resultados",
-  "short_name": "Fútbol Hub",
+  "name": "Fútbol Analytics - Datos y Estadísticas",
+  "short_name": "Fútbol Analytics",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#07101d",
   "theme_color": "#08111f",
-  "description": "PWA modular para resultados y estadísticas de fútbol.",
+  "description": "PWA modular para datos, estadísticas y análisis de fútbol.",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",

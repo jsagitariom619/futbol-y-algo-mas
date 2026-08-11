@@ -4,6 +4,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Arsenal",
     "season": "2026/27",
+    "apiId": 42,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -26,6 +27,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Aston Villa",
     "season": "2026/27",
+    "apiId": 66,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -48,6 +50,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Bournemouth",
     "season": "2026/27",
+    "apiId": 35,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -70,6 +73,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Brentford",
     "season": "2026/27",
+    "apiId": 55,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -92,6 +96,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Brighton",
     "season": "2026/27",
+    "apiId": 51,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -114,6 +119,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Burnley",
     "season": "2026/27",
+    "apiId": 44,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -136,6 +142,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Chelsea",
     "season": "2026/27",
+    "apiId": 49,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -158,6 +165,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Crystal Palace",
     "season": "2026/27",
+    "apiId": 52,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -180,6 +188,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Everton",
     "season": "2026/27",
+    "apiId": 45,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -202,6 +211,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Fulham",
     "season": "2026/27",
+    "apiId": 36,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -224,6 +234,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Leeds United",
     "season": "2026/27",
+    "apiId": 63,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -246,6 +257,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Liverpool",
     "season": "2026/27",
+    "apiId": 40,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -290,6 +302,7 @@ export const teams = [
     "competitionId": "premier-league",
     "name": "Manchester United",
     "season": "2026/27",
+    "apiId": 33,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -444,6 +457,7 @@ export const teams = [
     "competitionId": "laliga",
     "name": "Athletic Club",
     "season": "2026/27",
+    "apiId": 531,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -466,6 +480,7 @@ export const teams = [
     "competitionId": "laliga",
     "name": "Atlético de Madrid",
     "season": "2026/27",
+    "apiId": 530,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -576,6 +591,7 @@ export const teams = [
     "competitionId": "laliga",
     "name": "FC Barcelona",
     "season": "2026/27",
+    "apiId": 529,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -752,6 +768,7 @@ export const teams = [
     "competitionId": "laliga",
     "name": "Real Betis",
     "season": "2026/27",
+    "apiId": 543,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -774,6 +791,7 @@ export const teams = [
     "competitionId": "laliga",
     "name": "Real Madrid",
     "season": "2026/27",
+    "apiId": 541,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -796,6 +814,7 @@ export const teams = [
     "competitionId": "laliga",
     "name": "Real Sociedad",
     "season": "2026/27",
+    "apiId": 548,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -840,6 +859,7 @@ export const teams = [
     "competitionId": "laliga",
     "name": "Valencia CF",
     "season": "2026/27",
+    "apiId": 532,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -1368,6 +1388,7 @@ export const teams = [
     "competitionId": "bundesliga",
     "name": "Bayern Munich",
     "season": "2026/27",
+    "apiId": 157,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -1390,6 +1411,7 @@ export const teams = [
     "competitionId": "bundesliga",
     "name": "Borussia Dortmund",
     "season": "2026/27",
+    "apiId": 165,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -1412,6 +1434,7 @@ export const teams = [
     "competitionId": "bundesliga",
     "name": "RB Leipzig",
     "season": "2026/27",
+    "apiId": 173,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -1434,6 +1457,7 @@ export const teams = [
     "competitionId": "bundesliga",
     "name": "VfB Stuttgart",
     "season": "2026/27",
+    "apiId": 160,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -1478,6 +1502,7 @@ export const teams = [
     "competitionId": "bundesliga",
     "name": "Bayer Leverkusen",
     "season": "2026/27",
+    "apiId": 168,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -1984,6 +2009,7 @@ export const teams = [
     "competitionId": "champions-league",
     "name": "Inter",
     "season": "2026/27",
+    "apiId": 505,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -2138,6 +2164,7 @@ export const teams = [
     "competitionId": "champions-league",
     "name": "Napoli",
     "season": "2026/27",
+    "apiId": 492,
     "stats": {
       "played": 0,
       "wins": 0,
@@ -2204,6 +2231,7 @@ export const teams = [
     "competitionId": "champions-league",
     "name": "PSV",
     "season": "2026/27",
+    "apiId": 197,
     "stats": {
       "played": 0,
       "wins": 0,
