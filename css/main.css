@@ -17,3 +17,4 @@
 .data-status b{color:var(--gold)}.analysis-note{margin-top:18px}.analysis-note h3{margin-top:0}
 .loading-card{min-height:160px;display:grid;place-items:center;color:var(--muted)}
 .analysis-note{grid-column:1/-1}.data-status{line-height:1.5}
+.analysis-feature{min-height:245px}.feature-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}.feature-head>span{font-size:28px}.feature-head h3{margin:0}.feature-head small{color:var(--muted)}.frequency-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.frequency-grid>div{background:#0a192a;border:1px solid var(--line);border-radius:13px;padding:12px}.frequency-grid span{display:block;color:var(--muted);font-size:11px}.frequency-grid b{display:block;margin-top:5px;color:var(--accent);font-size:14px}.analysis-note{grid-column:1/-1}

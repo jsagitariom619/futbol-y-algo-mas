@@ -1,32 +1,20 @@
-# Fútbol Analytics
+# Fútbol Analytics — versión estadística modular
 
-Plataforma PWA modular para datos, estadísticas y análisis futbolístico.
+Esta versión conserva el lenguaje visual del proyecto original, pero orienta la ficha de cada encuentro a estadísticas históricas verificables.
 
-## Enfoque
-- Fixtures y calendarios.
-- Clasificaciones.
-- Fichas de equipos.
-- Historial de resultados.
-- Frecuencias históricas de goles.
-- Córners, tarjetas, fuera de juego y tiros cuando la fuente los proporciona.
-- Muestra, temporada y fuente visibles.
-- Nunca sustituir datos desconocidos por ceros inventados.
+## Qué muestra cada encuentro
+- Goles: promedios y frecuencias históricas de 2+ y 3+ goles.
+- Córners: promedios a favor y concedidos cuando la fuente los proporciona.
+- Tarjetas: medias de amarillas y rojas.
+- Fuera de juego: dato de partido cuando está disponible; no se inventa una serie histórica.
+- Tiros y tiros a puerta.
+- Muestra y temporada utilizada.
 
-## Fuente estadística
-La integración preparada utiliza API-Football como proveedor de datos. Su documentación indica que dispone de estadísticas de partido como tiros, córners, fueras de juego, tarjetas, posesión y pases, y que la cobertura puede variar por competición y temporada. La aplicación debe respetar esa cobertura y mostrar “Sin datos” cuando corresponda.
+## Fallback histórico
+Si la temporada actual todavía no tiene una muestra suficiente, el detalle busca automáticamente la temporada anterior y luego una segunda temporada histórica.
 
-## Configuración en Vercel
-Crear una variable de entorno:
+## Datos
+La aplicación usa el proxy `api/football.js` y requiere `API_FOOTBALL_KEY` configurada como variable privada en Vercel. No se coloca ninguna clave dentro del navegador.
 
-`API_FOOTBALL_KEY`
-
-No colocar la clave dentro de JavaScript del navegador. El proxy no expone endpoints de cuotas ni predicciones. El archivo `api/football.js` actúa como proxy limitado y solo permite endpoints estadísticos necesarios para la aplicación.
-
-## Auditoría
-Antes de cada entrega:
-1. Revisar estructura y código actual.
-2. Revisar fuentes y cobertura.
-3. Implementar.
-4. Validar imports, rutas, fechas y estados vacíos.
-5. Revisar que ningún valor desconocido aparezca como 0.
-6. Volver a comprobar PWA, navegación y regresiones.
+## Regla de integridad
+No se convierten campos vacíos en ceros ni se generan números ficticios. Un porcentaje como 8/10 (80% histórico) describe exclusivamente la frecuencia observada en la muestra indicada.
