@@ -1,69 +1,16 @@
-import { getHistoricalMatches, getHistoricalTeams, historicalSeasons } from '../services/historical-api.js';
-
-const leagues = [
-  ['PL','Premier League'], ['ELC','Championship'], ['BL1','Bundesliga'], ['BL2','Bundesliga 2'],
-  ['PD','LALIGA'], ['FL1','Ligue 1'], ['SA','Serie A'], ['PPL','Primeira Liga']
-];
-const names = Object.fromEntries(leagues);
-const esc = value => String(value ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-export function historicalView(initialLeague='PL', initialSeason='2025') {
-  const league = leagues.some(([v]) => v === initialLeague) ? initialLeague : 'PL';
-  const season = historicalSeasons.some(([v]) => v === initialSeason) ? initialSeason : historicalSeasons[0][0];
-  return `
-    <div class="section-title"><div><h2>Historial de fútbol</h2><p class="muted">Partidos reales ya disputados y datos de temporadas anteriores.</p></div><span class="badge">8 competiciones</span></div>
-    <div class="card">
-      <div class="search-row" style="grid-template-columns:1fr 1fr auto">
-        <select id="historyLeague">${leagues.map(([v,n]) => `<option value="${v}" ${v===league?'selected':''}>${n}</option>`).join('')}</select>
-        <select id="historySeason">${historicalSeasons.map(([v,n]) => `<option value="${v}" ${v===season?'selected':''}>${n}</option>`).join('')}</select>
-        <button id="historyLoad" class="primary-btn">Cargar historial</button>
-      </div>
-    </div>
-    <div id="historyStatus" class="card"><span class="muted">Selecciona una competición y temporada para consultar partidos ya finalizados.</span></div>
-    <div id="historyTeams" class="grid"></div>
-    <div id="historyMatches" class="card"></div>`;
+import {LEAGUES,SEASONS,getLocalMatches,getLocalTeams,summarizeGoals} from '../services/local-history.js';
+const names=Object.fromEntries(LEAGUES);
+const esc=value=>String(value??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate=value=>{const d=new Date(`${value}T12:00:00`);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString('es-BO',{day:'2-digit',month:'short',year:'numeric'});};
+const pct=v=>v==null?'Sin datos':`${v}%`;
+export function historicalView(initialLeague='PL',initialSeason='2025-26'){
+ const league=LEAGUES.some(([v])=>v===initialLeague)?initialLeague:'PL';
+ const season=SEASONS.some(([v])=>v===initialSeason)?initialSeason:'2025-26';
+ return `<div class="section-title"><div><h2>Historial de fútbol</h2><p class="muted">Base histórica local de partidos ya disputados. La consulta no depende de una API externa.</p></div><span class="badge">8 competiciones · 3 temporadas</span></div><div class="card"><div class="search-row" style="grid-template-columns:1fr 1fr auto"><select id="historyLeague">${LEAGUES.map(([v,n])=>`<option value="${v}" ${v===league?'selected':''}>${n}</option>`).join('')}</select><select id="historySeason">${SEASONS.map(([v,n])=>`<option value="${v}" ${v===season?'selected':''}>${n}</option>`).join('')}</select><button id="historyLoad" class="primary-btn">Ver historial</button></div></div><div id="historyStatus" class="card"><span class="muted">Selecciona una competición y temporada.</span></div><div id="historySummary"></div><div id="historyTeams" class="grid"></div><div id="historyMatches" class="card"></div>`;
 }
-
-function fmtDate(value) {
-  if (!value) return '—';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('es-BO', {day:'2-digit', month:'short', year:'numeric'});
-}
-
-function renderMatches(data) {
-  const matches = (data?.matches || []).filter(match => String(match?.status || '').toUpperCase() === 'FINISHED');
-  if (!matches.length) return '<div class="empty">No hay partidos históricos finalizados disponibles para esta consulta.</div>';
-  return `<div class="section-title"><h3>Partidos históricos</h3><span class="muted">${matches.length} resultados</span></div>
-    <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Local</th><th>Resultado</th><th>Visitante</th></tr></thead><tbody>
-    ${matches.map(match => `<tr><td>${fmtDate(match.utcDate)}</td><td>${esc(match.homeTeam?.name)}</td><td><strong>${match.score?.fullTime?.home ?? '—'} - ${match.score?.fullTime?.away ?? '—'}</strong></td><td>${esc(match.awayTeam?.name)}</td></tr>`).join('')}
-    </tbody></table></div>`;
-}
-
-async function loadHistory() {
-  const league = document.querySelector('#historyLeague')?.value;
-  const season = document.querySelector('#historySeason')?.value;
-  const status = document.querySelector('#historyStatus');
-  const matchesEl = document.querySelector('#historyMatches');
-  const teamsEl = document.querySelector('#historyTeams');
-  if (!league || !season || !status || !matchesEl || !teamsEl) return;
-  status.innerHTML = '<span class="muted">Consultando datos históricos reales…</span>';
-  matchesEl.innerHTML = '';
-  teamsEl.innerHTML = '';
-  try {
-    const [matchData, teamData] = await Promise.all([
-      getHistoricalMatches(league, season),
-      getHistoricalTeams(league, season)
-    ]);
-    const matches = (matchData?.matches || []).filter(m => String(m?.status || '').toUpperCase() === 'FINISHED');
-    const teams = teamData?.teams || [];
-    status.innerHTML = `<div class="section-title"><div><h3>${names[league]}</h3><span class="muted">Temporada ${historicalSeasons.find(s => s[0] === season)?.[1] || season} · solo partidos finalizados</span></div><strong>${matches.length} partidos históricos</strong></div>`;
-    teamsEl.innerHTML = teams.map(team => `<article class="card"><span class="badge">${esc(team.tla || team.shortName || 'Equipo')}</span><h3>${esc(team.name)}</h3><p class="muted">${esc(team.venue || 'Estadio no informado')}</p></article>`).join('');
-    matchesEl.innerHTML = renderMatches({matches});
-  } catch (error) {
-    status.innerHTML = `<div class="empty"><strong>No se pudo cargar el historial.</strong><br><span class="muted">${esc(error.message)}</span></div>`;
-  }
-}
-
-export function bindHistorical() {
-  document.querySelector('#historyLoad')?.addEventListener('click', loadHistory);
-}
+async function loadHistory(){
+ const league=document.querySelector('#historyLeague')?.value,season=document.querySelector('#historySeason')?.value,status=document.querySelector('#historyStatus'),summary=document.querySelector('#historySummary'),teamsEl=document.querySelector('#historyTeams'),matchesEl=document.querySelector('#historyMatches');
+ if(!league||!season||!status||!summary||!teamsEl||!matchesEl)return;
+ status.innerHTML='<span class="muted">Leyendo la base histórica local…</span>';summary.innerHTML='';teamsEl.innerHTML='';matchesEl.innerHTML='';
+ try{const [rows,teams]=await Promise.all([getLocalMatches({competition:league,season}),getLocalTeams(league,season)]);const stats=summarizeGoals(rows);status.innerHTML=`<div class="section-title"><div><h3>${esc(names[league])}</h3><span class="muted">Temporada ${esc(SEASONS.find(s=>s[0]===season)?.[1]||season)}</span></div><strong>${rows.length} partidos locales</strong></div>`;summary.innerHTML=stats?`<div class="grid"><div class="card"><small>Partidos</small><h2>${stats.matches}</h2></div><div class="card"><small>Goles totales</small><h2>${stats.totalGoals}</h2></div><div class="card"><small>Promedio de goles</small><h2>${stats.averageGoals}</h2><p class="muted">por partido</p></div><div class="card"><small>1+ gol</small><h2>${pct(stats.onePlus)}</h2><p class="muted">frecuencia histórica</p></div><div class="card"><small>2+ goles</small><h2>${pct(stats.twoPlus)}</h2><p class="muted">frecuencia histórica</p></div><div class="card"><small>3+ goles</small><h2>${pct(stats.threePlus)}</h2><p class="muted">frecuencia histórica</p></div></div>`:'';teamsEl.innerHTML=`<div class="card"><div class="section-title"><div><h3>Equipos registrados</h3><span class="muted">${teams.length} clubes con partidos en esta temporada.</span></div></div><div class="chip-list">${teams.map(t=>`<span class="badge">${esc(t)}</span>`).join('')}</div></div>`;matchesEl.innerHTML=`<div class="section-title"><div><h3>Partidos históricos</h3><span class="muted">Datos guardados localmente en el deployment.</span></div><span class="badge">${rows.length}</span></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Local</th><th>Resultado</th><th>Visitante</th></tr></thead><tbody>${rows.map(m=>`<tr><td>${fmtDate(m.date)}</td><td>${esc(m.home)}</td><td><strong>${m.homeGoals} - ${m.awayGoals}</strong></td><td>${esc(m.away)}</td></tr>`).join('')}</tbody></table></div>`;}catch(error){status.innerHTML=`<div class="empty"><strong>No se pudo abrir la base histórica local.</strong><br><span class="muted">${esc(error.message)}</span></div>`;}}
+export function bindHistorical(){document.querySelector('#historyLoad')?.addEventListener('click',loadHistory);}
