@@ -2,12 +2,22 @@ import {teams} from "../data/teams.js";
 import {competitions} from "../data/competitions.js";
 import {getHistoricalTeams,getHistoricalTeamMatches,getHistoricalMatches,findHistoricalTeam} from "../services/historical-data.js";
 
+const HISTORICAL_CODES={
+  "premier-league":"PL",
+  "championship":"ELC",
+  "bundesliga":"BL1",
+  "bundesliga-2":"BL2",
+  "laliga":"PD",
+  "ligue-1":"FL1",
+  "serie-a":"SA",
+  "primeira-liga":"PPL"
+};
+
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#039;"}[m]));
 const num=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
 const avg=a=>{const x=a.filter(v=>v!=null);return x.length?Math.round(x.reduce((s,v)=>s+v,0)/x.length*100)/100:null};
 const pct=(numv,den)=>den?Math.round(numv/den*100):null;
 const val=v=>v==null?'Sin datos':v;
-const freq=(count,total)=>count==null||!total?'Sin datos':`${count}/${total} (${pct(count,total)}%)`;
 
 function previousYears(season){
   const start=Number(String(season||'2026/27').slice(0,4));
@@ -25,7 +35,9 @@ function normalizeMatch(match,teamId){
   return {gf,ga,total:gf+ga,date:match?.utcDate||null,venue:isHome?'home':'away',opponent:isHome?match?.awayTeam?.name:match?.homeTeam?.name};
 }
 
-async function historicalTeam(team,competition,season){
+async function historicalTeam(team,competitionId,season){
+  const competition=HISTORICAL_CODES[competitionId];
+  if(!competition)throw new Error(`Competición histórica no configurada: ${competitionId}`);
   const years=previousYears(season);
   const rows=[];
   const seasons=[];
@@ -55,12 +67,13 @@ async function historicalTeam(team,competition,season){
     onePlus:pct(rows.filter(r=>r.total>=1).length,total),
     twoPlus:pct(rows.filter(r=>r.total>=2).length,total),
     threePlus:pct(rows.filter(r=>r.total>=3).length,total),
-    cleanSheets:pct(rows.filter(r=>r.ga===0).length,total),
-    over25:pct(rows.filter(r=>r.total>=3).length,total)
+    cleanSheets:pct(rows.filter(r=>r.ga===0).length,total)
   };
 }
 
-async function historicalH2H(home,away,competition,season){
+async function historicalH2H(home,away,competitionId,season){
+  const competition=HISTORICAL_CODES[competitionId];
+  if(!competition)return {sample:0,avgTotal:null,twoPlus:null,threePlus:null,rows:[]};
   const years=previousYears(season);
   const rows=[];
   for(const year of years){
@@ -73,16 +86,16 @@ async function historicalH2H(home,away,competition,season){
         const hg=num(m?.score?.fullTime?.home),ag=num(m?.score?.fullTime?.away);
         if(hg!=null&&ag!=null)rows.push({hg,ag,total:hg+ag,date:m?.utcDate});
       }
-    }catch{}
+    }catch(error){console.warn('Historical H2H unavailable',competition,year,error);}
   }
   return {sample:rows.length,avgTotal:avg(rows.map(r=>r.total)),twoPlus:pct(rows.filter(r=>r.total>=2).length,rows.length),threePlus:pct(rows.filter(r=>r.total>=3).length,rows.length),rows};
 }
 
 function teamCard(label,d){
- return `<div class="card team-analysis-card"><div class="team-analysis-head"><div><span class="badge live">Historial · ${d.seasons.length} temporadas</span><h3>${esc(label)}</h3></div><strong>${d.sample}</strong></div>
+ return `<div class="card team-analysis-card"><div class="team-analysis-head"><div><span class="badge live">Historial · ${d.seasons.length} temporadas</span><h3>${esc(label)}</h3></div><strong>${d.sample} partidos</strong></div>
  <div class="team-analysis-grid">
   <div><small>GF / partido</small><b>${val(d.avgFor)}</b></div><div><small>GC / partido</small><b>${val(d.avgAgainst)}</b></div><div><small>Goles totales</small><b>${val(d.avgTotal)}</b></div><div><small>Porterías a cero</small><b>${d.cleanSheets==null?'Sin datos':d.cleanSheets+'%'}</b></div>
-  <div><small>Córners a favor</small><b>Sin datos</b></div><div><small>Córners concedidos</small><b>Sin datos</b></div><div><small>Amarillas</small><b>Sin datos</b></div><div><small>Tiros a puerta</small><b>Sin datos</b></div>
+  <div><small>Córners</small><b>Sin datos</b></div><div><small>Tarjetas</small><b>Sin datos</b></div><div><small>Tiros a puerta</small><b>Sin datos</b></div><div><small>Fuera de juego</small><b>Sin datos</b></div>
  </div>
  <div class="frequency-grid"><div><span>1+ gol</span><b>${d.onePlus==null?'Sin datos':d.onePlus+'%'}</b></div><div><span>2+ goles</span><b>${d.twoPlus==null?'Sin datos':d.twoPlus+'%'}</b></div><div><span>3+ goles</span><b>${d.threePlus==null?'Sin datos':d.threePlus+'%'}</b></div></div>
  <p class="muted small-note">Muestra: ${d.sample} partidos finalizados · temporadas: ${d.seasons.length?d.seasons.join(', '):'sin datos'}.</p></div>`;
@@ -100,15 +113,15 @@ export async function teamAnalysisView(competitionId,homeId='',awayId=''){
      historicalTeam(away,c.id,c.season),
      historicalH2H(home,away,c.id,c.season)
    ]);
-   return selector(c.id,pool,homeId,awayId)+`<div class="analysis-header-card card"><span class="badge live">Análisis histórico</span><div class="match-title"><h2>${esc(home.name)}</h2><div class="vs-big">VS</div><h2>${esc(away.name)}</h2></div><p class="muted">Datos reales de partidos finalizados de las tres temporadas anteriores disponibles. No se generan números cuando la fuente no los proporciona.</p></div>
+   return selector(c.id,pool,homeId,awayId)+`<div class="analysis-header-card card"><span class="badge live">Visor histórico</span><div class="match-title"><h2>${esc(home.name)}</h2><div class="vs-big">VS</div><h2>${esc(away.name)}</h2></div><p class="muted">Consulta de partidos reales finalizados de las tres temporadas anteriores disponibles.</p></div>
    <div class="analysis-grid">${teamCard(home.name,hd)}${teamCard(away.name,ad)}
-    <div class="card analysis-feature"><div class="feature-head"><span>⚽</span><div><h3>Goles · frecuencia histórica</h3><small>Partidos realmente disputados</small></div></div>${row('Promedio total',hd.avgTotal,ad.avgTotal)}${row('2+ goles',hd.twoPlus,ad.twoPlus,'pct')}${row('3+ goles',hd.threePlus,ad.threePlus,'pct')}</div>
-    <div class="card analysis-feature"><div class="feature-head"><span>🤝</span><div><h3>Enfrentamientos directos</h3><small>Cuando existen en las temporadas consultadas</small></div></div>${row('Partidos H2H',h2h.sample,h2h.sample)}${row('Promedio de goles',h2h.avgTotal,h2h.avgTotal)}${row('2+ goles',h2h.twoPlus,h2h.twoPlus,'pct')}${row('3+ goles',h2h.threePlus,h2h.threePlus,'pct')}</div>
-    <div class="card analysis-feature"><div class="feature-head"><span>🚩</span><div><h3>Córners y disciplina</h3><small>La fuente histórica actual no entrega estos campos</small></div></div>${row('Córners',null,null)}${row('Tarjetas amarillas',null,null)}${row('Tiros a puerta',null,null)}<p class="muted small-note">Se mantienen como “Sin datos” en lugar de inventar valores.</p></div>
-    <div class="card analysis-note"><h3>Fuente y muestra</h3><p class="muted">La ficha se alimenta de partidos históricos reales. Los porcentajes son frecuencias observadas dentro de la muestra y no constituyen una predicción del próximo encuentro.</p></div>
+    <div class="card analysis-feature"><div class="feature-head"><span>⚽</span><div><h3>Goles · historial</h3><small>Frecuencias observadas en partidos reales</small></div></div>${row('Promedio total',hd.avgTotal,ad.avgTotal)}${row('2+ goles',hd.twoPlus,ad.twoPlus,'pct')}${row('3+ goles',hd.threePlus,ad.threePlus,'pct')}</div>
+    <div class="card analysis-feature"><div class="feature-head"><span>🤝</span><div><h3>Enfrentamientos directos</h3><small>Historial disponible en las temporadas consultadas</small></div></div>${row('Partidos H2H',h2h.sample,h2h.sample)}${row('Promedio de goles',h2h.avgTotal,h2h.avgTotal)}${row('2+ goles',h2h.twoPlus,h2h.twoPlus,'pct')}${row('3+ goles',h2h.threePlus,h2h.threePlus,'pct')}</div>
+    <div class="card analysis-feature"><div class="feature-head"><span>📊</span><div><h3>Estadísticas adicionales</h3><small>Solo se muestran si la fuente histórica las proporciona</small></div></div>${row('Córners',null,null)}${row('Tarjetas amarillas',null,null)}${row('Tiros a puerta',null,null)}${row('Fuera de juego',null,null)}<p class="muted small-note">No se rellenan valores estimados ni inventados.</p></div>
+    <div class="card analysis-note"><h3>Fuente y muestra</h3><p class="muted">Los datos de esta vista proceden de partidos históricos reales consultados desde la fuente configurada. Las frecuencias se calculan únicamente sobre la muestra disponible.</p></div>
    </div>`;
- }catch(error){console.error(error);return selector(c.id,pool,homeId,awayId)+`<div class="empty">No fue posible cargar el historial. Revisa el deployment de Vercel y la conexión con Football-Data.org.</div>`;}
+ }catch(error){console.error(error);return selector(c.id,pool,homeId,awayId)+`<div class="empty"><strong>No se pudo cargar el historial.</strong><br><span class="muted">${esc(error.message)}</span></div>`;}
 }
 
 function row(label,h,a,type='number'){const fmt=v=>v==null?'Sin datos':type==='pct'?`${v}%`:v;return `<div class="stat-row"><span>${label}</span><b>${fmt(h)}</b><i>vs</i><b>${fmt(a)}</b></div>`;}
-function selector(compId,pool,homeId,awayId){return `<div class="section-title"><div><h2>Analizar dos equipos</h2><span class="muted">Selecciona una competición y dos equipos para consultar su historial real.</span></div></div><div class="card selector-card"><div class="search-row"><select id="analysisCompetition">${competitions.map(c=>`<option value="${c.id}" ${c.id===compId?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div><div class="team-selector-grid"><label><span>Equipo A</span><select id="analysisHome"><option value="">Seleccionar equipo</option>${pool.map(t=>`<option value="${t.id}" ${t.id===homeId?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label><div class="selector-vs">VS</div><label><span>Equipo B</span><select id="analysisAway"><option value="">Seleccionar equipo</option>${pool.map(t=>`<option value="${t.id}" ${t.id===awayId?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label></div><button id="runTeamAnalysis" class="primary-btn">Analizar historial</button></div>`;}
+function selector(compId,pool,homeId,awayId){return `<div class="section-title"><div><h2>Visor histórico de equipos</h2><span class="muted">Selecciona una competición y dos equipos para consultar sus partidos anteriores.</span></div></div><div class="card selector-card"><div class="search-row"><select id="analysisCompetition">${competitions.map(c=>`<option value="${c.id}" ${c.id===compId?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div><div class="team-selector-grid"><label><span>Equipo A</span><select id="analysisHome"><option value="">Seleccionar equipo</option>${pool.map(t=>`<option value="${t.id}" ${t.id===homeId?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label><div class="selector-vs">VS</div><label><span>Equipo B</span><select id="analysisAway"><option value="">Seleccionar equipo</option>${pool.map(t=>`<option value="${t.id}" ${t.id===awayId?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label></div><button id="runTeamAnalysis" class="primary-btn">Ver historial</button></div>`;}
