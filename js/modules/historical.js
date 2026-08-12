@@ -7,17 +7,19 @@ const leagues = [
 const names = Object.fromEntries(leagues);
 const esc = value => String(value ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-export function historicalView() {
+export function historicalView(initialLeague='PL', initialSeason='2025') {
+  const league = leagues.some(([v]) => v === initialLeague) ? initialLeague : 'PL';
+  const season = historicalSeasons.some(([v]) => v === initialSeason) ? initialSeason : historicalSeasons[0][0];
   return `
     <div class="section-title"><div><h2>Historial de fútbol</h2><p class="muted">Partidos reales ya disputados y datos de temporadas anteriores.</p></div><span class="badge">8 competiciones</span></div>
     <div class="card">
       <div class="search-row" style="grid-template-columns:1fr 1fr auto">
-        <select id="historyLeague">${leagues.map(([v,n]) => `<option value="${v}">${n}</option>`).join('')}</select>
-        <select id="historySeason">${historicalSeasons.map(([v,n]) => `<option value="${v}">${n}</option>`).join('')}</select>
+        <select id="historyLeague">${leagues.map(([v,n]) => `<option value="${v}" ${v===league?'selected':''}>${n}</option>`).join('')}</select>
+        <select id="historySeason">${historicalSeasons.map(([v,n]) => `<option value="${v}" ${v===season?'selected':''}>${n}</option>`).join('')}</select>
         <button id="historyLoad" class="primary-btn">Cargar historial</button>
       </div>
     </div>
-    <div id="historyStatus" class="card"><span class="muted">Selecciona una competición y temporada.</span></div>
+    <div id="historyStatus" class="card"><span class="muted">Selecciona una competición y temporada para consultar partidos ya finalizados.</span></div>
     <div id="historyTeams" class="grid"></div>
     <div id="historyMatches" class="card"></div>`;
 }
@@ -29,11 +31,11 @@ function fmtDate(value) {
 }
 
 function renderMatches(data) {
-  const matches = data?.matches || [];
-  if (!matches.length) return '<div class="empty">No hay partidos históricos disponibles para esta consulta.</div>';
-  return `<div class="section-title"><h3>Partidos registrados</h3><span class="muted">${matches.length} resultados</span></div>
-    <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Local</th><th>Resultado</th><th>Visitante</th><th>Estado</th></tr></thead><tbody>
-    ${matches.map(match => `<tr><td>${fmtDate(match.utcDate)}</td><td>${esc(match.homeTeam?.name)}</td><td><strong>${match.score?.fullTime?.home ?? '—'} - ${match.score?.fullTime?.away ?? '—'}</strong></td><td>${esc(match.awayTeam?.name)}</td><td>${esc(match.status || 'FINISHED')}</td></tr>`).join('')}
+  const matches = (data?.matches || []).filter(match => String(match?.status || '').toUpperCase() === 'FINISHED');
+  if (!matches.length) return '<div class="empty">No hay partidos históricos finalizados disponibles para esta consulta.</div>';
+  return `<div class="section-title"><h3>Partidos históricos</h3><span class="muted">${matches.length} resultados</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Local</th><th>Resultado</th><th>Visitante</th></tr></thead><tbody>
+    ${matches.map(match => `<tr><td>${fmtDate(match.utcDate)}</td><td>${esc(match.homeTeam?.name)}</td><td><strong>${match.score?.fullTime?.home ?? '—'} - ${match.score?.fullTime?.away ?? '—'}</strong></td><td>${esc(match.awayTeam?.name)}</td></tr>`).join('')}
     </tbody></table></div>`;
 }
 
@@ -52,11 +54,11 @@ async function loadHistory() {
       getHistoricalMatches(league, season),
       getHistoricalTeams(league, season)
     ]);
-    const matches = matchData?.matches || [];
+    const matches = (matchData?.matches || []).filter(m => String(m?.status || '').toUpperCase() === 'FINISHED');
     const teams = teamData?.teams || [];
-    status.innerHTML = `<div class="section-title"><div><h3>${names[league]}</h3><span class="muted">Temporada ${historicalSeasons.find(s => s[0] === season)?.[1] || season}</span></div><strong>${matches.length} partidos cargados</strong></div>`;
+    status.innerHTML = `<div class="section-title"><div><h3>${names[league]}</h3><span class="muted">Temporada ${historicalSeasons.find(s => s[0] === season)?.[1] || season} · solo partidos finalizados</span></div><strong>${matches.length} partidos históricos</strong></div>`;
     teamsEl.innerHTML = teams.map(team => `<article class="card"><span class="badge">${esc(team.tla || team.shortName || 'Equipo')}</span><h3>${esc(team.name)}</h3><p class="muted">${esc(team.venue || 'Estadio no informado')}</p></article>`).join('');
-    matchesEl.innerHTML = renderMatches(matchData);
+    matchesEl.innerHTML = renderMatches({matches});
   } catch (error) {
     status.innerHTML = `<div class="empty"><strong>No se pudo cargar el historial.</strong><br><span class="muted">${esc(error.message)}</span></div>`;
   }
