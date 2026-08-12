@@ -6,6 +6,7 @@ import {teamsView,bindTeamSearch} from "./modules/teams.js";
 import {standingsView} from "./modules/standings.js";
 import {matchDetail} from "./modules/match-detail.js";
 import {showToast} from "./ui/ui.js";
+import {teamAnalysisView} from "./modules/team-analysis.js";
 
 const views = {
   dashboard:["Resumen",dashboard],
@@ -13,7 +14,8 @@ const views = {
   matches:["Fixtures",matchesView],
   teams:["Equipos",teamsView],
   standings:["Clasificaciones",standingsView],
-  analysis:["Análisis del partido",matchDetail]
+  analysis:["Análisis del partido",matchDetail],
+  teamAnalysis:["Analizar equipos",teamAnalysisView]
 };
 
 const app=document.querySelector("#app");
@@ -29,9 +31,11 @@ function parseHash(){
 async function render(view="dashboard",param=""){
   const v=views[view]||views.dashboard;
   title.textContent=v[0];
+  const parts=param?param.split("/"):[];
   const rendered = view==="matches" ? v[1](param||"all") :
     view==="standings" ? v[1](param||"premier-league") :
     view==="analysis" ? v[1](param) :
+    view==="teamAnalysis" ? v[1](parts[0]||"premier-league",parts[1]||"",parts[2]||"") :
     v[1]();
   app.innerHTML = await Promise.resolve(rendered);
 
@@ -57,11 +61,19 @@ app.addEventListener("click",e=>{
 
   const back=e.target.closest(".back-to-matches,.back-link");
   if(back){ location.hash="matches"; return; }
+  if(e.target.id==="runTeamAnalysis") {
+    const c=document.querySelector("#analysisCompetition")?.value;
+    const h=document.querySelector("#analysisHome")?.value;
+    const a=document.querySelector("#analysisAway")?.value;
+    if(c&&h&&a&&h!==a) location.hash=`teamAnalysis/${c}/${h}/${a}`;
+    return;
+  }
 });
 
 app.addEventListener("change",e=>{
   if(e.target.id==="matchCompetition") location.hash="matches/"+e.target.value;
   if(e.target.id==="standingCompetition") location.hash="standings/"+e.target.value;
+  if(e.target.id==="analysisCompetition") location.hash="teamAnalysis/"+e.target.value;
 });
 
 window.addEventListener("hashchange",()=>{

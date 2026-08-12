@@ -10,34 +10,9 @@
     "usedFor": "2026/27 clubs"
   },
   {
-    "name": "LALIGA HYPERMOTION",
-    "url": "https://www.laliga.com/es-CA/laliga-hypermotion/clubes",
-    "usedFor": "2026/27 clubs"
-  },
-  {
     "name": "Bundesliga",
     "url": "https://www.bundesliga.com/en/bundesliga/clubs",
     "usedFor": "2026/27 clubs"
-  },
-  {
-    "name": "UEFA Champions League",
-    "url": "https://www.uefa.com/uefachampionsleague/clubs/",
-    "usedFor": "2026/27 league-phase clubs"
-  },
-  {
-    "name": "Premier League fixtures 2026/27",
-    "url": "https://www.premierleague.com/en/news/4675097/all-380-fixtures-for-202627-premier-league-season",
-    "usedFor": "Fixtures 2026/27; first matchday loaded"
-  },
-  {
-    "name": "LALIGA fixtures 2026/27",
-    "url": "https://www.laliga.com/calendar-2026-2027/laliga-easports",
-    "usedFor": "Calendar and first matchday loaded"
-  },
-  {
-    "name": "Bundesliga fixtures 2026/27",
-    "url": "https://products.bundesliga.com/fixtures",
-    "usedFor": "First matchday loaded"
   },
   {
     "name": "EFL Championship",
@@ -58,5 +33,15 @@
     "name": "API-Football — estadísticas",
     "url": "https://www.api-football.com/documentation",
     "usedFor": "Fixtures, standings, team statistics and match statistics such as shots, corners, offsides and cards; coverage checked by competition/season"
+  },
+  {
+    "name": "Bundesliga 2",
+    "url": "https://www.bundesliga.com/en/2bundesliga/clubs",
+    "usedFor": "Competition and club structure 2026/27"
+  },
+  {
+    "name": "Primeira Liga",
+    "url": "https://www.ligaportugal.pt/",
+    "usedFor": "Competition structure 2026/27"
   }
 ]
