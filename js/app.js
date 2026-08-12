@@ -2,7 +2,7 @@ import {dashboard} from "./modules/dashboard.js";
 import {competitionsView} from "./modules/competitions.js";
 import {teamsView,bindTeamSearch} from "./modules/teams.js";
 import {showToast} from "./ui/ui.js";
-import {teamAnalysisView} from "./modules/team-analysis.js";
+import {teamAnalysisView,bindTeamAnalysis,getSelectedTeamSearch} from "./modules/team-analysis.js";
 import {historicalView,bindHistorical} from "./modules/historical.js";
 
 const views = {
@@ -10,7 +10,7 @@ const views = {
   historical:["Historial de fútbol",historicalView],
   competitions:["Competiciones históricas",competitionsView],
   teams:["Equipos",teamsView],
-  teamAnalysis:["Comparar historial",teamAnalysisView]
+  teamAnalysis:["Historial entre equipos",teamAnalysisView]
 };
 
 const app=document.querySelector("#app");
@@ -28,7 +28,7 @@ async function render(view="dashboard",param=""){
   title.textContent=v[0];
   const parts=param?param.split("/"):[];
   const rendered = view==="teamAnalysis"
-    ? v[1](parts[0]||"premier-league",parts[1]||"",parts[2]||"")
+    ? v[1](parts[0]||"PL",parts[1]||"",parts[2]||"PL",parts[3]||"")
     : view==="historical"
       ? v[1](parts[0]||"PL",parts[1]||"2025")
       : v[1]();
@@ -37,6 +37,7 @@ async function render(view="dashboard",param=""){
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
   if(view==="teams") bindTeamSearch();
   if(view==="historical") bindHistorical();
+  if(view==="teamAnalysis") bindTeamAnalysis();
   sidebar.classList.remove("open");
 }
 
@@ -49,18 +50,12 @@ document.querySelector("#menuBtn").onclick=()=>sidebar.classList.toggle("open");
 document.querySelector("#refreshBtn").onclick=()=>showToast("Vista actualizada. Los datos mostrados corresponden al historial disponible en las fuentes configuradas.");
 
 app.addEventListener("click",e=>{
-  const comp=e.target.closest(".historical-open");
-  if(comp){ location.hash=`historical/${comp.dataset.competition}/2025`; return; }
   if(e.target.id==="runTeamAnalysis") {
-    const c=document.querySelector("#analysisCompetition")?.value;
-    const h=document.querySelector("#analysisHome")?.value;
-    const a=document.querySelector("#analysisAway")?.value;
-    if(c&&h&&a&&h!==a) location.hash=`teamAnalysis/${c}/${h}/${a}`;
+    const {leagueA,teamA,leagueB,teamB}=getSelectedTeamSearch();
+    if(leagueA&&teamA&&leagueB&&teamB&&teamA.toLowerCase()!==teamB.toLowerCase()) {
+      location.hash=`teamAnalysis/${encodeURIComponent(leagueA)}/${encodeURIComponent(teamA)}/${encodeURIComponent(leagueB)}/${encodeURIComponent(teamB)}`;
+    }
   }
-});
-
-app.addEventListener("change",e=>{
-  if(e.target.id==="analysisCompetition") location.hash="teamAnalysis/"+e.target.value;
 });
 
 window.addEventListener("hashchange",()=>{
