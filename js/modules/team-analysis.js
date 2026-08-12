@@ -10,16 +10,15 @@ const num = v => typeof v === "number" && Number.isFinite(v) ? v : null;
 const val = v => v == null ? "Sin datos" : v;
 const avg = a => { const x = a.filter(v => v != null); return x.length ? Math.round(x.reduce((s,v)=>s+v,0)/x.length*100)/100 : null; };
 
-function previousYears() { return [2025, 2024, 2023]; }
-
 function countCards(match) {
   const bookings = Array.isArray(match?.bookings) ? match.bookings : null;
   if (!bookings) return {yellow:null, red:null};
   let yellow = 0, red = 0;
   for (const item of bookings) {
-    const type = String(item?.card || item?.type || "").toLowerCase();
-    if (type.includes("red") || type.includes("second") || type.includes("straight")) red++;
-    else if (type.includes("yellow")) yellow++;
+    const type = String(item?.card || item?.type || "").toUpperCase();
+    if (type === "YELLOW") yellow++;
+    else if (type === "YELLOW_RED") { yellow++; red++; }
+    else if (type === "RED") red++;
   }
   return {yellow, red};
 }
@@ -32,7 +31,7 @@ function matchRow(match, teamAId, teamBId) {
   const hg = num(match?.score?.fullTime?.home), ag = num(match?.score?.fullTime?.away);
   if (hg == null || ag == null) return null;
   const cards = countCards(match);
-  return {id:match?.id,date:match?.utcDate||null,home:match?.homeTeam?.name||"Local",away:match?.awayTeam?.name||"Visitante",hg,ag,total:hg+ag,status:match?.status||"FINISHED",yellow:cards.yellow,red:cards.red};
+  return {id:match?.id,date:match?.utcDate||null,home:match?.homeTeam?.name||"Local",away:match?.awayTeam?.name||"Visitante",competition:match?.competition?.name||"Competición no indicada",hg,ag,total:hg+ag,status:match?.status||"FINISHED",yellow:cards.yellow,red:cards.red};
 }
 
 async function findTeam(league, query) {
@@ -44,34 +43,35 @@ async function findTeam(league, query) {
     || null;
 }
 
+async function getTeamMatchesDeep(teamId) {
+  // Ampliamos la ventana para que un enfrentamiento antiguo no desaparezca
+  // simplemente porque no ocurrió en las tres temporadas más recientes.
+  const pages = await Promise.all([
+    getHistoricalTeamMatches(teamId, undefined, {limit:500, offset:0, dateFrom:"2010-01-01", dateTo:"2026-12-31"}),
+    getHistoricalTeamMatches(teamId, undefined, {limit:500, offset:500, dateFrom:"2010-01-01", dateTo:"2026-12-31"})
+  ]);
+  const map = new Map();
+  pages.flat().forEach(match => { if (match?.id != null) map.set(match.id, match); });
+  return [...map.values()];
+}
+
 async function getH2H(teamA, teamB) {
+  const [aMatches, bMatches] = await Promise.all([getTeamMatchesDeep(teamA.id), getTeamMatchesDeep(teamB.id)]);
   const rows = [];
-  for (const season of previousYears()) {
-    try {
-      const [aMatches, bMatches] = await Promise.all([
-        getHistoricalTeamMatches(teamA.id, season, {limit:100}),
-        getHistoricalTeamMatches(teamB.id, season, {limit:100})
-      ]);
-      const byId = new Map();
-      [...aMatches, ...bMatches].forEach(m => { if (m?.id != null) byId.set(m.id, m); });
-      for (const match of byId.values()) {
-        const row = matchRow(match, teamA.id, teamB.id);
-        if (!row || rows.some(r => r.id === row.id)) continue;
-        // El resumen de partidos puede no incluir tarjetas. Solo en los H2H encontrados
-        // se consulta el detalle para intentar recuperar amarillas/rojas cuando la fuente las ofrece.
-        if (row.yellow == null || row.red == null) {
-          try {
-            const detail = await getHistoricalMatch(row.id);
-            const detailedCards = countCards(detail);
-            row.yellow = detailedCards.yellow;
-            row.red = detailedCards.red;
-          } catch {}
-        }
-        rows.push({...row, season});
-      }
-    } catch (error) {
-      console.warn("H2H historical season unavailable", season, error);
+  const seen = new Set();
+  for (const match of [...aMatches, ...bMatches]) {
+    const row = matchRow(match, teamA.id, teamB.id);
+    if (!row || seen.has(row.id)) continue;
+    seen.add(row.id);
+    if (row.yellow == null || row.red == null) {
+      try {
+        const detail = await getHistoricalMatch(row.id);
+        const detailedCards = countCards(detail);
+        row.yellow = detailedCards.yellow;
+        row.red = detailedCards.red;
+      } catch {}
     }
+    rows.push(row);
   }
   return rows.sort((a,b) => new Date(b.date) - new Date(a.date));
 }
@@ -99,10 +99,10 @@ function summaryCard(rows) {
 }
 
 function renderMatches(rows) {
-  if (!rows.length) return `<div class="empty"><strong>No se encontraron enfrentamientos históricos.</strong><br><span class="muted">No hay partidos coincidentes en las tres temporadas consultadas o la fuente no los tiene registrados.</span></div>`;
-  return `<div class="card"><div class="section-title"><div><h3>Partidos encontrados</h3><span class="muted">Historial real disponible</span></div><span class="badge">${rows.length} partidos</span></div>
-    <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Local</th><th>Resultado</th><th>Visitante</th><th>Amarillas</th><th>Rojas</th></tr></thead><tbody>
-    ${rows.map(r=>`<tr><td>${r.date ? new Date(r.date).toLocaleDateString("es-BO") : "Sin datos"}</td><td>${esc(r.home)}</td><td><strong>${r.hg} - ${r.ag}</strong></td><td>${esc(r.away)}</td><td>${val(r.yellow)}</td><td>${val(r.red)}</td></tr>`).join("")}
+  if (!rows.length) return `<div class="empty"><strong>No se encontraron enfrentamientos históricos.</strong><br><span class="muted">Se consultó una ventana amplia de partidos disponibles desde 2010. Si no aparece un enfrentamiento, la fuente configurada no lo devolvió.</span></div>`;
+  return `<div class="card"><div class="section-title"><div><h3>Partidos encontrados</h3><span class="muted">Historial real disponible en la fuente</span></div><span class="badge">${rows.length} partidos</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Competición</th><th>Local</th><th>Resultado</th><th>Visitante</th><th>Amarillas</th><th>Rojas</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.date ? new Date(r.date).toLocaleDateString("es-BO") : "Sin datos"}</td><td>${esc(r.competition)}</td><td>${esc(r.home)}</td><td><strong>${r.hg} - ${r.ag}</strong></td><td>${esc(r.away)}</td><td>${val(r.yellow)}</td><td>${val(r.red)}</td></tr>`).join("")}
     </tbody></table></div></div>`;
 }
 
@@ -132,7 +132,7 @@ export async function teamAnalysisView(leagueA="PL",teamAName="",leagueB="PL",te
     const [teamA, teamB] = await Promise.all([findTeam(leagueA, teamAName), findTeam(leagueB, teamBName)]);
     if (!teamA || !teamB) return base + `<div class="empty">No se pudo identificar uno de los equipos en la fuente histórica.</div>`;
     const rows = await getH2H(teamA, teamB);
-    return base + `<div class="analysis-header-card card"><span class="badge live">Historial puro</span><div class="match-title"><h2>${esc(teamA.name)}</h2><div class="vs-big">VS</div><h2>${esc(teamB.name)}</h2></div><p class="muted">${esc(leagueName(leagueA))} · ${esc(leagueName(leagueB))}. Solo se muestran antecedentes históricos encontrados.</p></div>${summaryCard(rows)}${renderMatches(rows)}<div class="card analysis-note"><h3>Sobre los datos</h3><p class="muted">La cantidad de enfrentamientos, goles y tarjetas depende de lo que la fuente histórica tenga registrado. Los campos no disponibles permanecen como “Sin datos”; no se inventan ni se estiman.</p></div>`;
+    return base + `<div class="analysis-header-card card"><span class="badge live">Historial puro</span><div class="match-title"><h2>${esc(teamA.name)}</h2><div class="vs-big">VS</div><h2>${esc(teamB.name)}</h2></div><p class="muted">${esc(leagueName(leagueA))} · ${esc(leagueName(leagueB))}. Solo se muestran antecedentes históricos encontrados.</p></div>${summaryCard(rows)}${renderMatches(rows)}<div class="card analysis-note"><h3>Sobre los datos</h3><p class="muted">La consulta amplía la búsqueda a partidos disponibles desde 2010 y también puede encontrar enfrentamientos disputados en competiciones internacionales. Los campos no disponibles permanecen como “Sin datos”; no se inventan ni se estiman.</p></div>`;
   } catch (error) {
     return base + `<div class="empty"><strong>No se pudo consultar el historial.</strong><br><span class="muted">${esc(error.message)}</span></div>`;
   }
