@@ -1,9 +1,10 @@
 const cacheKey=(action,params)=>`historical-data:${action}:${JSON.stringify(params)}`;
 
 async function call(action,params={},ttl=900){
-  const key=cacheKey(action,params), now=Date.now();
+  const cleanParams=Object.fromEntries(Object.entries(params||{}).filter(([,value])=>value!==undefined&&value!==null&&value!==''));
+  const key=cacheKey(action,cleanParams), now=Date.now();
   try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved&&now-saved.time<ttl*1000)return saved.data;}catch{}
-  const qs=new URLSearchParams({action,...params});
+  const qs=new URLSearchParams({action,...cleanParams});
   const r=await fetch(`/api/historical?${qs.toString()}`);
   const payload=await r.json().catch(()=>({}));
   if(!r.ok||!payload.ok)throw new Error(payload?.error||payload?.upstream?.message||'Fuente histórica no disponible.');
