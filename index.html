@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#08111f">
-<meta name="description" content="Panel moderno de resultados y estadísticas de fútbol">
+<meta name="description" content="Panel moderno de resultados y estadísticas históricas de fútbol">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="css/main.css">
 <title>Fútbol Analytics</title>
@@ -12,16 +12,17 @@
 <body>
 <div class="app-shell">
   <aside class="sidebar">
-    <div class="brand"><span class="brand-mark">⚽</span><div><strong>Fútbol Analytics</strong><small>Datos, estadísticas y análisis</small></div></div>
+    <div class="brand"><span class="brand-mark">⚽</span><div><strong>Fútbol Analytics</strong><small>Historia y estadísticas de fútbol</small></div></div>
     <nav id="nav">
       <button data-view="dashboard" class="nav-item active">⌂ <span>Inicio</span></button>
+      <button data-view="historical" class="nav-item">◷ <span>Historial</span></button>
       <button data-view="competitions" class="nav-item">◉ <span>Competiciones</span></button>
       <button data-view="matches" class="nav-item">▣ <span>Partidos</span></button>
       <button data-view="teamAnalysis" class="nav-item">⌕ <span>Analizar equipos</span></button>
       <button data-view="teams" class="nav-item">◌ <span>Equipos</span></button>
       <button data-view="standings" class="nav-item">☷ <span>Clasificaciones</span></button>
     </nav>
-    <div class="sidebar-foot"><span class="status-dot"></span> Datos locales disponibles</div>
+    <div class="sidebar-foot"><span class="status-dot"></span> Fuente histórica conectada por servidor</div>
   </aside>
   <main class="main">
     <header class="topbar">
