@@ -1,22 +1,16 @@
 import {dashboard} from "./modules/dashboard.js";
 import {competitionsView} from "./modules/competitions.js";
-import {matchesView} from "./modules/matches.js";
 import {teamsView,bindTeamSearch} from "./modules/teams.js";
-import {standingsView} from "./modules/standings.js";
-import {matchDetail} from "./modules/match-detail.js";
 import {showToast} from "./ui/ui.js";
 import {teamAnalysisView} from "./modules/team-analysis.js";
 import {historicalView,bindHistorical} from "./modules/historical.js";
 
 const views = {
-  dashboard:["Resumen",dashboard],
-  historical:["Historial histórico",historicalView],
-  competitions:["Competiciones",competitionsView],
-  matches:["Fixtures",matchesView],
+  dashboard:["Visor histórico",dashboard],
+  historical:["Historial de fútbol",historicalView],
+  competitions:["Competiciones históricas",competitionsView],
   teams:["Equipos",teamsView],
-  standings:["Clasificaciones",standingsView],
-  analysis:["Análisis del partido",matchDetail],
-  teamAnalysis:["Analizar equipos",teamAnalysisView]
+  teamAnalysis:["Comparar historial",teamAnalysisView]
 };
 
 const app=document.querySelector("#app");
@@ -33,11 +27,9 @@ async function render(view="dashboard",param=""){
   const v=views[view]||views.dashboard;
   title.textContent=v[0];
   const parts=param?param.split("/"):[];
-  const rendered = view==="matches" ? v[1](param||"all") :
-    view==="standings" ? v[1](param||"premier-league") :
-    view==="analysis" ? v[1](param) :
-    view==="teamAnalysis" ? v[1](parts[0]||"premier-league",parts[1]||"",parts[2]||"") :
-    v[1]();
+  const rendered = view==="teamAnalysis"
+    ? v[1](parts[0]||"premier-league",parts[1]||"",parts[2]||"")
+    : v[1]();
   app.innerHTML = await Promise.resolve(rendered);
 
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
@@ -52,15 +44,9 @@ document.querySelector("#nav").addEventListener("click",e=>{
 });
 
 document.querySelector("#menuBtn").onclick=()=>sidebar.classList.toggle("open");
-document.querySelector("#refreshBtn").onclick=()=>showToast("Actualización preparada; los datos históricos provienen de la fuente configurada.");
+document.querySelector("#refreshBtn").onclick=()=>showToast("Vista actualizada. Los datos mostrados corresponden al historial disponible en las fuentes configuradas.");
 
 app.addEventListener("click",e=>{
-  const comp=e.target.closest(".comp-open");
-  if(comp){ location.hash="matches/"+comp.dataset.competition; return; }
-  const match=e.target.closest(".match-open");
-  if(match){ location.hash="analysis/"+match.dataset.matchId; return; }
-  const back=e.target.closest(".back-to-matches,.back-link");
-  if(back){ location.hash="matches"; return; }
   if(e.target.id==="runTeamAnalysis") {
     const c=document.querySelector("#analysisCompetition")?.value;
     const h=document.querySelector("#analysisHome")?.value;
@@ -70,8 +56,6 @@ app.addEventListener("click",e=>{
 });
 
 app.addEventListener("change",e=>{
-  if(e.target.id==="matchCompetition") location.hash="matches/"+e.target.value;
-  if(e.target.id==="standingCompetition") location.hash="standings/"+e.target.value;
   if(e.target.id==="analysisCompetition") location.hash="teamAnalysis/"+e.target.value;
 });
 
