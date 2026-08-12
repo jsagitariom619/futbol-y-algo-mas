@@ -1,11 +1,11 @@
 {
-  "name": "Fútbol Analytics - Datos y Estadísticas",
+  "name": "Fútbol Analytics - Visor histórico de fútbol",
   "short_name": "Fútbol Analytics",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#07101d",
   "theme_color": "#08111f",
-  "description": "PWA modular para datos, estadísticas y análisis de fútbol.",
+  "description": "Visor histórico y educativo de partidos, temporadas y estadísticas de fútbol.",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
