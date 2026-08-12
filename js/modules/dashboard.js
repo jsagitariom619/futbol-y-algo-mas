@@ -30,7 +30,7 @@ export function dashboard(){
 
     <div class="grid">
       ${competitions.slice(0,8).map(c=>`
-        <article class="card competition-card comp-open" data-competition="${c.id}">
+        <article class="card competition-card historical-open" data-competition="${c.id}">
           <span class="badge">Historial</span>
           <div class="comp-icon">⚽</div>
           <h3>${esc(c.name)}</h3>
