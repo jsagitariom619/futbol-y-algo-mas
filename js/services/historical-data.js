@@ -26,6 +26,11 @@ export async function getHistoricalTeamMatches(teamId,season,extra={}){
   return data?.matches||[];
 }
 
+export async function getHistoricalMatch(matchId){
+  const data=await call('match',{matchId},21600);
+  return data || null;
+}
+
 export function normalizeName(value=''){
   return String(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
 }
