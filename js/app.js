@@ -11,14 +11,14 @@ const app=document.querySelector("#app"),title=document.querySelector("#pageTitl
 function parseHash(){const raw=location.hash.slice(1)||"dashboard";const [view,...rest]=raw.split("/");return {view,param:rest.join("/")};}
 async function render(view="dashboard",param=""){
  const v=views[view]||views.dashboard;title.textContent=v[0];const parts=param?param.split("/").map(x=>decodeURIComponent(x)):[];
- const rendered=view==="teamAnalysis"?v[1](parts[0]||"PL",parts[1]||"",parts[2]||"PL",parts[3]||""):view==="historical"?v[1](parts[0]||"PL",parts[1]||"2025"):view==="competitionHistory"?v[1](parts[0]||"premier-league",parts[1]||"2025"):v[1]();
+ const rendered=view==="teamAnalysis"?v[1](parts[0]||"PL",parts[1]||"",parts[2]||"PL",parts[3]||""):view==="historical"?v[1](parts[0]||"PL",parts[1]||"2025-26"):view==="competitionHistory"?v[1](parts[0]||"premier-league",parts[1]||"2025-26"):v[1]();
  app.innerHTML=await Promise.resolve(rendered);document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));if(view==="teams")bindTeamSearch();if(view==="historical")bindHistorical();if(view==="teamAnalysis")bindTeamAnalysis();sidebar.classList.remove("open");
 }
 document.querySelector("#nav").addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(b)location.hash=b.dataset.view;});
 document.querySelector("#menuBtn").onclick=()=>sidebar.classList.toggle("open");
-document.querySelector("#refreshBtn").onclick=()=>showToast("Vista actualizada. Los datos mostrados corresponden al historial disponible en las fuentes configuradas.");
+document.querySelector("#refreshBtn").onclick=()=>showToast("Vista actualizada. Los datos estadísticos se leen de la base histórica local.");
 app.addEventListener("click",e=>{
- const comp=e.target.closest(".historical-open");if(comp){location.hash=`competitionHistory/${encodeURIComponent(comp.dataset.competition)}/2025`;return;}
+ const comp=e.target.closest(".historical-open");if(comp){location.hash=`competitionHistory/${encodeURIComponent(comp.dataset.competition)}/2025-26`;return;}
  if(e.target.id==="runTeamAnalysis"){const {leagueA,teamA,leagueB,teamB}=getSelectedTeamSearch();if(leagueA&&teamA&&leagueB&&teamB&&teamA.toLowerCase()!==teamB.toLowerCase())location.hash=`teamAnalysis/${encodeURIComponent(leagueA)}/${encodeURIComponent(teamA)}/${encodeURIComponent(leagueB)}/${encodeURIComponent(teamB)}`;}
 });
 app.addEventListener("change",e=>{if(e.target.id==="competitionSeason"){const {param}=parseHash();const parts=param.split("/");location.hash=`competitionHistory/${parts[0]||"premier-league"}/${e.target.value}`;}});
