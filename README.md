@@ -1,23 +1,36 @@
-# Fútbol Analytics — ligas seleccionadas
+# Fútbol Analytics — visor histórico de fútbol
 
-La plataforma queda limitada deliberadamente a ocho competiciones:
+Fútbol Analytics es un visor histórico y educativo centrado exclusivamente en información de fútbol.
+
+## Alcance
+
+- Partidos ya disputados y resultados históricos.
+- Temporadas anteriores de competiciones seleccionadas.
+- Equipos y contexto de sus competiciones.
+- Promedios y frecuencias calculados a partir de partidos reales disponibles.
+- Enfrentamientos directos cuando existen en la fuente histórica.
+- Córners, tarjetas, tiros y otras estadísticas únicamente cuando la fuente proporciona esos datos.
+- Transparencia sobre la muestra utilizada y los datos que no están disponibles.
+
+## Principios
+
+Los datos se presentan con finalidad histórica y educativa. No se muestran cuotas, picks, recomendaciones, predicciones de resultados ni elementos relacionados con apuestas.
+
+Cuando una estadística no existe en la fuente consultada, la interfaz conserva el valor como “Sin datos”; no se inventan ni estiman cifras para completar una tarjeta.
+
+## Competiciones
+
+La plataforma trabaja actualmente con ocho competiciones seleccionadas:
 
 - Premier League
 - Championship
 - Bundesliga
 - Bundesliga 2
-- LALIGA EA SPORTS
+- LALIGA
 - Ligue 1
 - Serie A
 - Primeira Liga
 
-No se incluyen otras ligas ni competiciones continentales.
+## Visor de comparación histórica
 
-La reducción se aplica a los catálogos locales de competiciones, equipos y fixtures, y al mapa de IDs de la API.
-
-## Integridad
-Los datos estadísticos deben proceder de fuentes verificables. La reducción de ligas no implica que los historiales de temporadas anteriores ya estén cargados localmente.
-
-
-## Selector de análisis histórico
-La navegación incluye “Analizar equipos”: permite seleccionar una de las ocho competiciones y dos clubes para consultar historial de las tres temporadas anteriores, frecuencias históricas de goles, promedios de córners, tarjetas, tiros a puerta y enfrentamientos directos cuando la fuente los proporciona. No recorre todo el fixture.
+La sección “Comparar historial” permite seleccionar dos equipos de una competición y consultar sus temporadas anteriores, frecuencia histórica de goles, promedios estadísticos disponibles y enfrentamientos directos.
