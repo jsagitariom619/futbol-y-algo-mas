@@ -1,4 +1,3 @@
-
 import {dashboard} from "./modules/dashboard.js";
 import {competitionsView} from "./modules/competitions.js";
 import {matchesView} from "./modules/matches.js";
@@ -7,9 +6,11 @@ import {standingsView} from "./modules/standings.js";
 import {matchDetail} from "./modules/match-detail.js";
 import {showToast} from "./ui/ui.js";
 import {teamAnalysisView} from "./modules/team-analysis.js";
+import {historicalView,bindHistorical} from "./modules/historical.js";
 
 const views = {
   dashboard:["Resumen",dashboard],
+  historical:["Historial histórico",historicalView],
   competitions:["Competiciones",competitionsView],
   matches:["Fixtures",matchesView],
   teams:["Equipos",teamsView],
@@ -41,6 +42,7 @@ async function render(view="dashboard",param=""){
 
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
   if(view==="teams") bindTeamSearch();
+  if(view==="historical") bindHistorical();
   sidebar.classList.remove("open");
 }
 
@@ -50,15 +52,13 @@ document.querySelector("#nav").addEventListener("click",e=>{
 });
 
 document.querySelector("#menuBtn").onclick=()=>sidebar.classList.toggle("open");
-document.querySelector("#refreshBtn").onclick=()=>showToast("Actualización preparada; no se muestran datos inventados.");
+document.querySelector("#refreshBtn").onclick=()=>showToast("Actualización preparada; los datos históricos provienen de la fuente configurada.");
 
 app.addEventListener("click",e=>{
   const comp=e.target.closest(".comp-open");
   if(comp){ location.hash="matches/"+comp.dataset.competition; return; }
-
   const match=e.target.closest(".match-open");
   if(match){ location.hash="analysis/"+match.dataset.matchId; return; }
-
   const back=e.target.closest(".back-to-matches,.back-link");
   if(back){ location.hash="matches"; return; }
   if(e.target.id==="runTeamAnalysis") {
@@ -66,7 +66,6 @@ app.addEventListener("click",e=>{
     const h=document.querySelector("#analysisHome")?.value;
     const a=document.querySelector("#analysisAway")?.value;
     if(c&&h&&a&&h!==a) location.hash=`teamAnalysis/${c}/${h}/${a}`;
-    return;
   }
 });
 
