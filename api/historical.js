@@ -1,6 +1,6 @@
 const BASE = 'https://api.football-data.org/v4';
 const ALLOWED = new Set(['competition','matches','teams','teamMatches','match']);
-const COMP_CODES = new Set(['PL','ELC','BL1','BL2','PD','FL1','SA','PPL']);
+const COMP_CODES = new Set(['PL','ELC','BL1','BL2','PD','FL1','SA','PPL','CL','EL','UCL']);
 
 function send(res, status, body) {
   return res.status(status)
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   if (competition && !COMP_CODES.has(competition)) return send(res, 400, { ok:false, error:'Competición no habilitada.' });
 
   const q = new URLSearchParams();
-  for (const key of ['season','status','dateFrom','dateTo','venue','limit','offset','matchday']) {
+  for (const key of ['season','status','dateFrom','dateTo','venue','limit','offset','matchday','competitions']) {
     if (req.query[key] !== undefined && req.query[key] !== '') q.set(key, String(req.query[key]));
   }
   if (!q.has('limit') && action === 'matches') q.set('limit', '100');
@@ -33,7 +33,11 @@ export default async function handler(req, res) {
 
   try {
     const upstream = await fetch(`${BASE}${endpoint}?${q.toString()}`, {
-      headers: { 'X-Auth-Token': token, 'Accept': 'application/json' }
+      headers: {
+        'X-Auth-Token': token,
+        'Accept': 'application/json',
+        'X-Unfold-Bookings': 'true'
+      }
     });
     const text = await upstream.text();
     let data;
