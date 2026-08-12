@@ -29,7 +29,9 @@ async function render(view="dashboard",param=""){
   const parts=param?param.split("/"):[];
   const rendered = view==="teamAnalysis"
     ? v[1](parts[0]||"premier-league",parts[1]||"",parts[2]||"")
-    : v[1]();
+    : view==="historical"
+      ? v[1](parts[0]||"PL",parts[1]||"2025")
+      : v[1]();
   app.innerHTML = await Promise.resolve(rendered);
 
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
@@ -47,6 +49,8 @@ document.querySelector("#menuBtn").onclick=()=>sidebar.classList.toggle("open");
 document.querySelector("#refreshBtn").onclick=()=>showToast("Vista actualizada. Los datos mostrados corresponden al historial disponible en las fuentes configuradas.");
 
 app.addEventListener("click",e=>{
+  const comp=e.target.closest(".historical-open");
+  if(comp){ location.hash=`historical/${comp.dataset.competition}/2025`; return; }
   if(e.target.id==="runTeamAnalysis") {
     const c=document.querySelector("#analysisCompetition")?.value;
     const h=document.querySelector("#analysisHome")?.value;
