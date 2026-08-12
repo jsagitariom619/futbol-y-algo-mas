@@ -1,0 +1,11 @@
+{
+  "name": "futbol-y-algo-mas",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node scripts/build-historical-db.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
