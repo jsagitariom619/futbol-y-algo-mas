@@ -26,7 +26,7 @@ function parseHash(){
 async function render(view="dashboard",param=""){
   const v=views[view]||views.dashboard;
   title.textContent=v[0];
-  const parts=param?param.split("/"):[];
+  const parts=param?param.split("/").map(x=>decodeURIComponent(x)):[];
   const rendered = view==="teamAnalysis"
     ? v[1](parts[0]||"PL",parts[1]||"",parts[2]||"PL",parts[3]||"")
     : view==="historical"
