@@ -1,13 +1,12 @@
-// IDs estables de competiciones en API-Football. Solo las ocho competiciones seleccionadas.
+// IDs estables de las competiciones principales en API-Football.
 export const leagueMap = {
   "premier-league": 39,
-  "championship": 40,
   "bundesliga": 78,
-  "bundesliga-2": 79,
   "laliga": 140,
   "ligue-1": 61,
   "serie-a": 135,
-  "primeira-liga": 94
+  "primeira-liga": 94,
+  "champions-league": 2
 };
 
 export function apiSeason(season){
