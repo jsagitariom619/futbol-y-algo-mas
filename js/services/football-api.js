@@ -11,9 +11,11 @@ async function call(action,params={},ttl=300){
   try{localStorage.setItem(key,JSON.stringify({time:now,data:payload.data}));}catch{}
   return payload.data;
 }
-export async function getLeagueFixtures(competition,season){const league=leagueMap[competition];if(!league)throw new Error('Competición no configurada.');return call('fixtures',{league,season:apiSeason(season)},900);}
-export async function getStandings(competition,season){const league=leagueMap[competition];if(!league)throw new Error('Competición no configurada.');return call('standings',{league,season:apiSeason(season)},900);}
-export async function getTeamStats(team,competition,season){const league=leagueMap[competition];if(!league)throw new Error('Competición no configurada.');return call('teamStats',{league,season:apiSeason(season),team},21600);}
+function config(competition){const league=leagueMap[competition];if(!league)throw new Error('Competición no configurada.');return league;}
+export async function getUpcomingFixtures(competition,season,next=30){return call('fixtures',{league:config(competition),season:apiSeason(season),next},300);}
+export async function getLeagueFixtures(competition,season){return call('fixtures',{league:config(competition),season:apiSeason(season)},900);}
+export async function getStandings(competition,season){return call('standings',{league:config(competition),season:apiSeason(season)},900);}
+export async function getTeamStats(team,competition,season){return call('teamStats',{league:config(competition),season:apiSeason(season),team},21600);}
 export async function getFixtureStats(fixture){return call('fixtureStats',{fixture},3600);}
-export async function getTeamMatches(team,competition,season,last=10){const league=leagueMap[competition];if(!league)throw new Error('Competición no configurada.');return call('teamMatches',{team,league,season:apiSeason(season),last},3600);}
+export async function getTeamMatches(team,competition,season,last=10){return call('teamMatches',{team,league:config(competition),season:apiSeason(season),last},3600);}
 export async function getHeadToHead(homeId,awayId,last=5){return call('headToHead',{h2h:`${homeId}-${awayId}`,last},21600);}
