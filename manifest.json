@@ -1,11 +1,11 @@
 {
-  "name": "Fútbol Analytics - Visor histórico de fútbol",
+  "name": "Fútbol Analytics - Centro de análisis deportivo",
   "short_name": "Fútbol Analytics",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#07101d",
-  "theme_color": "#08111f",
-  "description": "Visor histórico y educativo de partidos, temporadas y estadísticas de fútbol.",
+  "background_color": "#06131d",
+  "theme_color": "#06131d",
+  "description": "Centro visual de partidos, tendencias y análisis estadístico de fútbol con datos deportivos reales.",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
