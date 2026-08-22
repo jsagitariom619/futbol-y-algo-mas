@@ -35,7 +35,7 @@ export async function renderMatchCenter(active='premier-league'){
 
   const cards=fixtures.length?fixtures.map(f=>`
     <article class="fixture-card" data-fixture="${f.fixture.id}" data-league="${league.id}" data-home="${f.teams.home.id}" data-away="${f.teams.away.id}">
-      <div class="fixture-top"><span>${esc(f.league.round||league.name)}</span><time>${fixtureDate(f.fixture.date)}</time></div>
+      <div class="fixture-top"><span>${esc(f.league.round||league.name)}</span><time data-iso="${esc(f.fixture.date)}">${fixtureDate(f.fixture.date)}</time></div>
       <div class="fixture-teams">
         <div class="club"><img src="${esc(f.teams.home.logo||'')}" alt=""><strong>${esc(f.teams.home.name)}</strong></div>
         <div class="fixture-vs"><b>VS</b><small>${esc(f.fixture.venue?.name||'Próximo partido')}</small></div>
