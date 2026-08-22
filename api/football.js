@@ -7,8 +7,21 @@ const ALLOWED = new Set([
 ]);
 
 function send(res, status, body) {
-  res.status(status).setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+  res.status(status).setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
   res.json(body);
+}
+
+function upstreamErrorMessage(data) {
+  const errors = data?.errors;
+  if (!errors) return '';
+  if (typeof errors === 'string') return errors.trim();
+  if (Array.isArray(errors)) return errors.filter(Boolean).join(' · ');
+  if (typeof errors === 'object') {
+    return Object.entries(errors)
+      .map(([k,v]) => `${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`)
+      .join(' · ');
+  }
+  return String(errors);
 }
 
 export default async function handler(req, res) {
@@ -47,7 +60,14 @@ export default async function handler(req, res) {
       headers: { 'x-apisports-key': key, 'Accept': 'application/json' }
     });
     const data = await r.json();
-    if (!r.ok) return send(res, r.status, { ok:false, upstream:data });
+    const apiError = upstreamErrorMessage(data);
+    if (!r.ok || apiError) {
+      return send(res, r.ok ? 502 : r.status, {
+        ok:false,
+        error: apiError || 'API-Football rechazó la consulta.',
+        upstream: data
+      });
+    }
     return send(res, 200, { ok:true, data });
   } catch (error) {
     return send(res, 502, { ok:false, error:'No se pudo consultar la fuente estadística.', detail:String(error?.message || error) });
