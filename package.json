@@ -1,9 +1,9 @@
 {
   "name": "futbol-y-algo-mas",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "scripts": {
-    "build": "node -e \"console.log('Fútbol Analytics: static build ready')\""
+    "build": "node scripts/build-historical-db.mjs"
   },
   "engines": {
     "node": ">=18"
