@@ -1,27 +1,54 @@
-import {dashboard} from "./modules/dashboard.js";
-import {competitionsView} from "./modules/competitions.js";
-import {competitionHistoryView} from "./modules/competition-history.js";
-import {teamsView,bindTeamSearch} from "./modules/teams.js";
-import {showToast} from "./ui/ui.js";
-import {teamAnalysisView,bindTeamAnalysis,getSelectedTeamSearch} from "./modules/team-analysis.js";
-import {historicalView,bindHistorical} from "./modules/historical.js";
+import { renderMatchCenter } from './modules/match-center.js';
+import { renderStatisticalAnalysis } from './modules/statistical-analysis.js';
 
-const views={dashboard:["Visor histórico",dashboard],historical:["Historial de fútbol",historicalView],competitions:["Competiciones históricas",competitionsView],competitionHistory:["Archivo de competición",competitionHistoryView],teams:["Equipos",teamsView],teamAnalysis:["Historial entre equipos",teamAnalysisView]};
-const app=document.querySelector("#app"),title=document.querySelector("#pageTitle"),sidebar=document.querySelector(".sidebar");
-function parseHash(){const raw=location.hash.slice(1)||"dashboard";const [view,...rest]=raw.split("/");return {view,param:rest.join("/")};}
-async function render(view="dashboard",param=""){
- const v=views[view]||views.dashboard;title.textContent=v[0];const parts=param?param.split("/").map(x=>decodeURIComponent(x)):[];
- const rendered=view==="teamAnalysis"?v[1](parts[0]||"PL",parts[1]||"",parts[2]||"PL",parts[3]||""):view==="historical"?v[1](parts[0]||"PL",parts[1]||"2025-26"):view==="competitionHistory"?v[1](parts[0]||"premier-league",parts[1]||"2025-26"):v[1]();
- app.innerHTML=await Promise.resolve(rendered);document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));if(view==="teams")bindTeamSearch();if(view==="historical")bindHistorical();if(view==="teamAnalysis")bindTeamAnalysis();sidebar.classList.remove("open");
+const app=document.querySelector('#app');
+const pageTitle=document.querySelector('#pageTitle');
+let activeLeague='premier-league';
+let lastMatchPayload=null;
+
+function loading(label='Cargando datos deportivos…'){
+  app.innerHTML=`<div class="loading-screen"><div class="ball-loader">⚽</div><strong>${label}</strong><span>Consultando la fuente estadística</span></div>`;
 }
-document.querySelector("#nav").addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(b)location.hash=b.dataset.view;});
-document.querySelector("#menuBtn").onclick=()=>sidebar.classList.toggle("open");
-document.querySelector("#refreshBtn").onclick=()=>showToast("Vista actualizada. Los datos estadísticos se leen de la base histórica local.");
-app.addEventListener("click",e=>{
- const comp=e.target.closest(".historical-open");if(comp){location.hash=`competitionHistory/${encodeURIComponent(comp.dataset.competition)}/2025-26`;return;}
- if(e.target.id==="runTeamAnalysis"){const {leagueA,teamA,leagueB,teamB}=getSelectedTeamSearch();if(leagueA&&teamA&&leagueB&&teamB&&teamA.toLowerCase()!==teamB.toLowerCase())location.hash=`teamAnalysis/${encodeURIComponent(leagueA)}/${encodeURIComponent(teamA)}/${encodeURIComponent(leagueB)}/${encodeURIComponent(teamB)}`;}
+async function showMatches(league=activeLeague){
+  activeLeague=league;
+  pageTitle.textContent='Centro de partidos';
+  loading('Cargando próximos partidos…');
+  app.innerHTML=await renderMatchCenter(activeLeague);
+  history.replaceState({view:'matches'},'',`#liga/${activeLeague}`);
+}
+async function showAnalysis(card){
+  const fixture=card.dataset.fixture;
+  lastMatchPayload={
+    fixtureId:fixture,
+    league:card.dataset.league,
+    homeId:card.dataset.home,
+    awayId:card.dataset.away,
+    homeName:card.querySelector('.club:first-child strong')?.textContent||'Local',
+    awayName:card.querySelector('.club:last-child strong')?.textContent||'Visitante',
+    homeLogo:card.querySelector('.club:first-child img')?.src||'',
+    awayLogo:card.querySelector('.club:last-child img')?.src||'',
+    date:card.querySelector('time')?.dataset.iso||''
+  };
+  pageTitle.textContent='Análisis del partido';
+  loading('Construyendo análisis estadístico…');
+  app.innerHTML=await renderStatisticalAnalysis(lastMatchPayload);
+  history.pushState({view:'analysis'},'',`#partido/${fixture}`);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+app.addEventListener('click',async e=>{
+  const league=e.target.closest('[data-league].league-tab');
+  if(league){await showMatches(league.dataset.league);return;}
+  const fixture=e.target.closest('.fixture-card');
+  if(fixture){await showAnalysis(fixture);return;}
+  if(e.target.closest('#reloadMatches')){try{for(const k of Object.keys(localStorage))if(k.startsWith('fa-api:fixtures:'))localStorage.removeItem(k);}catch{}await showMatches(activeLeague);return;}
+  if(e.target.closest('[data-back]')){await showMatches(activeLeague);return;}
 });
-app.addEventListener("change",e=>{if(e.target.id==="competitionSeason"){const {param}=parseHash();const parts=param.split("/");location.hash=`competitionHistory/${parts[0]||"premier-league"}/${e.target.value}`;}});
-window.addEventListener("hashchange",()=>{const x=parseHash();render(x.view,x.param);});
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-const first=parseHash();render(first.view,first.param);
+
+document.querySelector('#homeBtn')?.addEventListener('click',()=>showMatches(activeLeague));
+document.querySelector('#refreshBtn')?.addEventListener('click',()=>showMatches(activeLeague));
+window.addEventListener('popstate',()=>{if(location.hash.startsWith('#liga/'))showMatches(location.hash.split('/')[1]||activeLeague);else if(lastMatchPayload&&location.hash.startsWith('#partido/')){pageTitle.textContent='Análisis del partido';loading();renderStatisticalAnalysis(lastMatchPayload).then(html=>app.innerHTML=html);}else showMatches(activeLeague);});
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+const initialLeague=location.hash.startsWith('#liga/')?location.hash.split('/')[1]:'premier-league';
+showMatches(initialLeague);
