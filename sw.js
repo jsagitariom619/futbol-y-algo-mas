@@ -1,5 +1,5 @@
-const CACHE="footballhub-v9";
-const ASSETS=["./","./index.html","./css/main.css","./js/app.js","./js/modules/match-center.js","./js/modules/statistical-analysis.js","./js/services/football-api.js","./js/data/league-map.js","./manifest.json"];
+const CACHE="footballhub-v10";
+const ASSETS=["./","./index.html","./css/main.css","./js/app.js","./js/modules/match-center.js","./js/modules/statistical-analysis.js","./js/services/football-api.js","./js/data/league-map.js","./assets/icons/icon.svg","./manifest.json"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))).then(()=>self.clients.claim()))));
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));}return res}).catch(()=>e.request.mode==="navigate"?caches.match("./index.html"):undefined)))});
+self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return res;}).catch(()=>caches.match(e.request).then(r=>r||caches.match("./index.html"))));});
