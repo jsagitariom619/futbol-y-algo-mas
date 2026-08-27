@@ -1,99 +1,21 @@
 let databasePromise=null;
-
-export const LEAGUES=[
-  ['PL','Premier League'],['ELC','Championship'],['BL1','Bundesliga'],['BL2','Bundesliga 2'],
-  ['PD','LALIGA'],['FL1','Ligue 1'],['SA','Serie A'],['PPL','Primeira Liga']
-];
+export const LEAGUES=[['PL','Premier League'],['ELC','Championship'],['BL1','Bundesliga'],['BL2','Bundesliga 2'],['PD','LALIGA'],['FL1','Ligue 1'],['SA','Serie A'],['PPL','Primeira Liga']];
 export const SEASONS=[['2023-24','2023/24'],['2024-25','2024/25'],['2025-26','2025/26']];
-
 const normalize=value=>String(value??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
-
-async function getDatabase(){
-  if(!databasePromise){
-    databasePromise=fetch('./data/historical-db.json',{cache:'force-cache'}).then(async response=>{
-      if(!response.ok)throw new Error('La base histórica local no está disponible en este deployment.');
-      return response.json();
-    });
-  }
-  return databasePromise;
-}
-
+const valid=n=>typeof n==='number'&&Number.isFinite(n);
+const round=n=>Math.round(n*100)/100;
+async function getDatabase(){if(!databasePromise){databasePromise=fetch('./data/historical-db.json',{cache:'force-cache'}).then(async r=>{if(!r.ok)throw new Error('La base histórica local no está disponible en este deployment.');return r.json();});}return databasePromise;}
 export async function getHistoricalDatabase(){return getDatabase();}
-
-export async function getLocalMatches({competition,season,team}={}){
-  const db=await getDatabase();
-  const target=team?normalize(team):null;
-  return db.matches.filter(match=>
-    (!competition||match.competition===competition)&&
-    (!season||match.season===season)&&
-    (!target||normalize(match.home)===target||normalize(match.away)===target)
-  );
-}
-
-export async function getLocalTeams(competition,season){
-  const rows=await getLocalMatches({competition,season});
-  const names=new Set();
-  rows.forEach(m=>{names.add(m.home);names.add(m.away);});
-  return [...names].sort((a,b)=>a.localeCompare(b));
-}
-
-export async function findLocalTeam(competition,name){
-  const teams=await getLocalTeams(competition);
-  const target=normalize(name);
-  return teams.find(team=>normalize(team)===target)
-    ||teams.find(team=>normalize(team).includes(target)||target.includes(normalize(team)))
-    ||null;
-}
-
-export async function getTeamHistory(competition,team,{seasons=SEASONS.map(s=>s[0]),limit=30}={}){
-  const rows=await getLocalMatches({competition,team});
-  return rows.filter(m=>seasons.includes(m.season)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,limit);
-}
-
-export async function getHeadToHead(teamA,teamB,{competitions=null,seasons=null}={}){
-  const a=normalize(teamA),b=normalize(teamB);
-  const db=await getDatabase();
-  const allowedCompetitions=competitions?.length?new Set(competitions):null;
-  const allowedSeasons=seasons?.length?new Set(seasons):null;
-  return db.matches.filter(m=>{
-    const h=normalize(m.home),v=normalize(m.away);
-    return (!allowedCompetitions||allowedCompetitions.has(m.competition))&&
-      (!allowedSeasons||allowedSeasons.has(m.season))&&
-      ((h===a&&v===b)||(h===b&&v===a));
-  }).sort((x,y)=>y.date.localeCompare(x.date));
-}
-
-export function summarizeGoals(rows){
-  const n=rows.length;
-  if(!n)return null;
-  const total=rows.reduce((sum,row)=>sum+row.totalGoals,0);
-  const home=rows.reduce((sum,row)=>sum+row.homeGoals,0);
-  const away=rows.reduce((sum,row)=>sum+row.awayGoals,0);
-  const avg=x=>Math.round(x/n*100)/100;
-  return {
-    matches:n,
-    totalGoals:total,
-    averageGoals:avg(total),
-    averageHomeGoals:avg(home),
-    averageAwayGoals:avg(away),
-    onePlus:Math.round(rows.filter(r=>r.totalGoals>=1).length/n*100),
-    twoPlus:Math.round(rows.filter(r=>r.totalGoals>=2).length/n*100),
-    threePlus:Math.round(rows.filter(r=>r.totalGoals>=3).length/n*100),
-    fourPlus:Math.round(rows.filter(r=>r.totalGoals>=4).length/n*100),
-    zeroGoals:Math.round(rows.filter(r=>r.totalGoals===0).length/n*100)
-  };
-}
-
-export function summarizeTeam(rows,team){
-  const target=normalize(team);
-  const matches=rows.filter(Boolean);
-  if(!matches.length)return null;
-  let scored=0,conceded=0;
-  for(const m of matches){
-    const isHome=normalize(m.home)===target;
-    scored+=isHome?m.homeGoals:m.awayGoals;
-    conceded+=isHome?m.awayGoals:m.homeGoals;
-  }
-  const avg=x=>Math.round(x/matches.length*100)/100;
-  return {matches:matches.length,goalsFor:scored,goalsAgainst:conceded,averageFor:avg(scored),averageAgainst:avg(conceded),goals:summarizeGoals(matches)};
-}
+export async function getLocalMatches({competition,season,team}={}){const db=await getDatabase(),target=team?normalize(team):null;return db.matches.filter(m=>(!competition||m.competition===competition)&&(!season||m.season===season)&&(!target||normalize(m.home)===target||normalize(m.away)===target));}
+export async function getLocalTeams(competition,season){const rows=await getLocalMatches({competition,season}),names=new Set();rows.forEach(m=>{names.add(m.home);names.add(m.away);});return [...names].sort((a,b)=>a.localeCompare(b));}
+export async function findLocalTeam(competition,name){const teams=await getLocalTeams(competition),target=normalize(name);return teams.find(t=>normalize(t)===target)||teams.find(t=>normalize(t).includes(target)||target.includes(normalize(t)))||null;}
+export async function getTeamHistory(competition,team,{seasons=SEASONS.map(s=>s[0]),limit=30}={}){const rows=await getLocalMatches({competition,team});return rows.filter(m=>seasons.includes(m.season)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,limit);}
+export async function getHeadToHead(teamA,teamB,{competitions=null,seasons=null}={}){const a=normalize(teamA),b=normalize(teamB),db=await getDatabase(),ca=competitions?.length?new Set(competitions):null,sa=seasons?.length?new Set(seasons):null;return db.matches.filter(m=>{const h=normalize(m.home),v=normalize(m.away);return(!ca||ca.has(m.competition))&&(!sa||sa.has(m.season))&&((h===a&&v===b)||(h===b&&v===a));}).sort((x,y)=>y.date.localeCompare(x.date));}
+export function summarizeGoals(rows){const n=rows.length;if(!n)return null;const total=rows.reduce((s,r)=>s+r.totalGoals,0),home=rows.reduce((s,r)=>s+r.homeGoals,0),away=rows.reduce((s,r)=>s+r.awayGoals,0);return{matches:n,totalGoals:total,averageGoals:round(total/n),averageHomeGoals:round(home/n),averageAwayGoals:round(away/n),onePlus:Math.round(rows.filter(r=>r.totalGoals>=1).length/n*100),twoPlus:Math.round(rows.filter(r=>r.totalGoals>=2).length/n*100),threePlus:Math.round(rows.filter(r=>r.totalGoals>=3).length/n*100),fourPlus:Math.round(rows.filter(r=>r.totalGoals>=4).length/n*100),zeroGoals:Math.round(rows.filter(r=>r.totalGoals===0).length/n*100)};}
+function totals(rows,a,b){const usable=rows.filter(r=>valid(r[a])&&valid(r[b]));return{rows:usable,values:usable.map(r=>r[a]+r[b])};}
+function threshold(values,n){return values.length?Math.round(values.filter(v=>v>=n).length/values.length*100):null;}
+function avg(values){return values.length?round(values.reduce((s,v)=>s+v,0)/values.length):null;}
+export function summarizeMatchMetrics(rows){const corners=totals(rows,'cornersHome','cornersAway'),yellow=totals(rows,'yellowHome','yellowAway'),red=totals(rows,'redHome','redAway'),shots=totals(rows,'shotsHome','shotsAway'),sot=totals(rows,'shotsOnTargetHome','shotsOnTargetAway'),fouls=totals(rows,'foulsHome','foulsAway');return{goals:summarizeGoals(rows),corners:{sample:corners.values.length,average:avg(corners.values),fivePlus:threshold(corners.values,5),sevenPlus:threshold(corners.values,7),ninePlus:threshold(corners.values,9),elevenPlus:threshold(corners.values,11)},yellow:{sample:yellow.values.length,average:avg(yellow.values),twoPlus:threshold(yellow.values,2),fourPlus:threshold(yellow.values,4),sixPlus:threshold(yellow.values,6)},red:{sample:red.values.length,average:avg(red.values),onePlus:threshold(red.values,1)},shots:{sample:shots.values.length,average:avg(shots.values)},shotsOnTarget:{sample:sot.values.length,average:avg(sot.values)},fouls:{sample:fouls.values.length,average:avg(fouls.values)}};}
+export function summarizeTeam(rows,team){const target=normalize(team),matches=rows.filter(Boolean);if(!matches.length)return null;let scored=0,conceded=0,points=0,shotsFor=0,shotsAgainst=0,sotFor=0,sotAgainst=0,shotN=0,sotN=0;for(const m of matches){const home=normalize(m.home)===target,gf=home?m.homeGoals:m.awayGoals,ga=home?m.awayGoals:m.homeGoals;scored+=gf;conceded+=ga;points+=gf>ga?3:gf===ga?1:0;const sf=home?m.shotsHome:m.shotsAway,sa=home?m.shotsAway:m.shotsHome;if(valid(sf)&&valid(sa)){shotsFor+=sf;shotsAgainst+=sa;shotN++;}const stf=home?m.shotsOnTargetHome:m.shotsOnTargetAway,sta=home?m.shotsOnTargetAway:m.shotsOnTargetHome;if(valid(stf)&&valid(sta)){sotFor+=stf;sotAgainst+=sta;sotN++;}}
+return{matches:matches.length,goalsFor:scored,goalsAgainst:conceded,averageFor:round(scored/matches.length),averageAgainst:round(conceded/matches.length),pointsPerGame:round(points/matches.length),goalDiffPerGame:round((scored-conceded)/matches.length),shotsFor:shotN?round(shotsFor/shotN):null,shotsAgainst:shotN?round(shotsAgainst/shotN):null,shotsOnTargetFor:sotN?round(sotFor/sotN):null,shotsOnTargetAgainst:sotN?round(sotAgainst/sotN):null,goals:summarizeGoals(matches)};}
+export function resultTrend(statsA,statsB){if(!statsA||!statsB)return null;const perfA=statsA.pointsPerGame*1.6+statsA.goalDiffPerGame*0.9+((statsA.shotsOnTargetFor??0)-(statsA.shotsOnTargetAgainst??0))*0.12,perfB=statsB.pointsPerGame*1.6+statsB.goalDiffPerGame*0.9+((statsB.shotsOnTargetFor??0)-(statsB.shotsOnTargetAgainst??0))*0.12,diff=Math.max(-3,Math.min(3,perfA-perfB)),draw=Math.max(.18,.30-Math.abs(diff)*.035),remaining=1-draw,aShare=1/(1+Math.exp(-diff)),a=Math.round(remaining*aShare*100),b=Math.round(remaining*(1-aShare)*100),d=100-a-b;return{teamA:a,draw:d,teamB:b,indexA:round(perfA),indexB:round(perfB)};}
